@@ -82,7 +82,8 @@ export default function HomePage() {
               PausePay examines the message, recipient, ledger, timing, and payment history around a transfer—then explains what does not add up before you confirm.
             </p>
             <div className="hero__actions">
-              <a className="button" href="#demo">Run a scam scenario <ArrowDownRight size={17} /></a>
+              <a className="button" href="/demo/messages">Go to Real App <ArrowRight size={17} /></a>
+              <a className="button" style={{ backgroundColor: 'var(--accent-color, #333)' }} href="#demo">Explore scenarios <ArrowDownRight size={17} /></a>
               <a className="text-link" href="#workflow">See how it reasons <ArrowRight size={16} /></a>
             </div>
             <p className="hero__disclaimer"><LockKeyhole size={15} aria-hidden="true" /> No real bank, UPI account, PIN, or OTP is connected.</p>
