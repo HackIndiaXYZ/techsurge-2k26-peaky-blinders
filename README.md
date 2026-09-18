@@ -1,220 +1,363 @@
-# Authorised to Lose
+# PausePay
 
-### A contextual safety layer for UPI-style authorised push payments
+### A second opinion before you pay.
 
-> **A second opinion before you pay.**
+PausePay is a contextual payment safety layer designed for UPI-style authorised push payments and social-engineering scenarios.
 
-Authorised to Lose is a FinTech safety prototype designed to detect **social-engineering and authorised push-payment scam risk before a user confirms a payment**.
+> **Don't just check the payment. Check the context.**
 
-Instead of treating a transaction as an isolated event, the system examines the context around it — messages, transaction history, payee relationships, ledger context, behavioural signals, and timing — and turns those signals into an explainable risk assessment.
+A payment can be technically valid and fully authorised by the user while still being the result of manipulation, urgency, deception, or a fabricated story.
 
-The user remains in control.
+PausePay connects the **message, payment intent, transaction history, payee relationship, ledger context, behaviour, and timing** before the user commits the payment.
 
-> **Risk ≠ fraud verdict.**
+It then produces an explainable risk signal and gives the user the final decision.
 
-The system produces a risk signal and explains the evidence. It does not claim to prove that a payment is fraudulent.
-
----
-
-## Table of Contents
-
-- [Problem](#problem)
-- [Solution](#solution)
-- [Core Idea](#core-idea)
-- [How It Works](#how-it-works)
-- [Architecture](#architecture)
-- [Example](#example)
-- [Risk Engine](#risk-engine)
-- [Explainability](#explainability)
-- [User Decision](#user-decision)
-- [Synthetic Data](#synthetic-data)
-- [Evaluation](#evaluation)
-- [Technology Stack](#technology-stack)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-- [Demo](#demo)
-- [API](#api)
-- [Testing](#testing)
-- [Limitations](#limitations)
-- [Future Scope](#future-scope)
-- [Safety & Privacy](#safety--privacy)
-- [Team / Hackathon](#team--hackathon)
+> **Risk ≠ Fraud Verdict**
 
 ---
 
-## Problem
+## 1. Problem
 
-Authorised push-payment scams are difficult to stop because the payment itself may be technically valid:
-
-- the user enters the payment details,
-- the user authorises the transaction,
-- the payment system processes it normally.
-
-The problem is often the **social context surrounding the payment**.
-
-For example:
+Authorised push-payment scams can look like normal transactions because the user is manipulated into initiating and authorising the payment.
 
 ```text
+Attacker
+   ↓
+Social Engineering
+   ↓
+User Trusts the Story
+   ↓
+User Initiates Payment
+   ↓
+User Authorises Payment
+   ↓
+Money Leaves Account
+```
+
+A transaction-only view may see:
+
+```text
+₹5,000 → Rahul Sharma → Valid Payment
+```
+
+But the surrounding context may reveal:
+
+```text
+"I accidentally sent ₹5,000."
++
+No matching ₹5,000 incoming payment
++
+New recipient
++
+Recipient mismatch
++
+Urgency
++
+Payment immediately after message
+```
+
+The key question is therefore:
+
+> **"Does the story surrounding this payment make sense?"**
+
+---
+
+## 2. Solution
+
+PausePay introduces a **contextual safety layer before payment confirmation**.
+
+The prototype demonstrates this using simulated host applications rather than requiring users to copy-paste messages.
+
+```text
+SIMULATED MESSAGES APP
+          ↓
+"Review with PausePay"
+          ↓
+Context automatically attached
+          ↓
+SIMULATED PAYMENT APP
+          ↓
+"Review Payment"
+          ↓
+PAUSEPAY ANALYSIS
+          ↓
+Contextual Payment Graph
+          ↓
+Risk Signals
+          ↓
+Explainable Warning
+          ↓
+GO BACK / CONTINUE ANYWAY
+```
+
+The intended experience is:
+
+> **See → Review → Understand → Decide**
+
+---
+
+## 3. Improved Product Concept: PausePay as a Safety Layer
+
+The key improvement over a standalone fraud-detection dashboard is that PausePay behaves like a **safety layer around the payment decision**.
+
+Instead of:
+
+```text
+Message
+   ↓
+Copy
+   ↓
+Paste
+   ↓
+Analyse
+```
+
+the prototype demonstrates:
+
+```text
+Message
+   ↓
+Review with PausePay
+   ↓
+Payment
+   ↓
+Review Payment
+   ↓
+Contextual Analysis
+```
+
+The context follows the simulated workflow automatically.
+
+This makes the product experience closer to how a real contextual payment-safety system could operate.
+
+---
+
+## 4. Prototype Boundary
+
+The hackathon prototype contains three simulated parts:
+
+### Simulated Messages App
+
+A fictional messaging interface where the user receives a suspicious message.
+
+### Simulated Payment App
+
+A fictional UPI-style payment interface where the user creates a payment.
+
+### PausePay Safety Layer
+
+The intelligence layer that connects the message context with the payment decision.
+
+The prototype does **not** claim to directly monitor or inject UI into:
+
+- WhatsApp
+- SMS
+- Google Pay
+- PhonePe
+- Paytm
+- real banking applications
+
+It does not connect to real payment rails or execute real payments.
+
+Instead:
+
+```text
+Real-world concept
+        ↓
+Simulated host applications
+        ↓
+Actual PausePay intelligence
+```
+
+### Production vision
+
+A production version could integrate through supported mechanisms provided by operating systems, messaging platforms, payment applications, or financial institutions.
+
+The exact integration mechanism would depend on the capabilities and policies of those platforms.
+
+---
+
+## 5. Core Product Flow
+
+### Step 1 — Message
+
+The user receives:
+
+```text
+Rahul Sharma
+
 "I accidentally sent ₹5,000 to you.
 Please return it immediately to rahul@upi."
 ```
 
-A user may see a familiar-looking request and act quickly without checking whether the claimed incoming payment actually exists.
-
-Traditional transaction-only detection can miss this because:
+The user sees:
 
 ```text
-Amount: ₹5,000
-Recipient: valid UPI-style identifier
-User: authorised the payment
+[ Review with PausePay ]
 ```
 
-All three facts can be technically normal.
+### Step 2 — Context Transfer
 
-The suspicious part is the **relationship between the message, claimed transfer, recipient, timing, and ledger state**.
+The prototype automatically transfers structured message context.
 
----
-
-## Solution
-
-Authorised to Lose adds a contextual safety layer immediately before payment confirmation.
-
-```text
-Payment Intent
-      ↓
-Context Aggregation
-      ↓
-Contextual Payment Graph
-      ↓
-Feature Extraction
-      ↓
-Risk Engine
-      ↓
-Risk Band + Evidence
-      ↓
-Plain-Language Explanation
-      ↓
-User Decision
-      ↓
-Audit Trace
+```json
+{
+  "messageId": "msg_001",
+  "sender": "Rahul Sharma",
+  "text": "I accidentally sent ₹5,000...",
+  "claimedAmount": 5000,
+  "urgency": "high",
+  "intent": "refund"
+}
 ```
 
-The system asks:
+No copy-paste is required.
 
-> **"Does the story surrounding this payment make sense?"**
+### Step 3 — Payment
 
-rather than simply:
-
-> "Is this transaction unusual?"
-
----
-
-## Core Idea
-
-### Contextual Payment Graph
-
-The core concept is a **Contextual Payment Graph**.
-
-Instead of analysing:
+The simulated payment app displays:
 
 ```text
-₹5,000 → Rahul
-```
+Send Money
 
-in isolation, the system connects related events:
-
-```text
-                    Message
-                       │
-          ┌────────────┼────────────┐
-          ▼            ▼            ▼
-    Claimed Sender  ₹5,000       Urgency
-          │            │
-          └──────┬─────┘
-                 ▼
-        Claimed Incoming Transfer
-                 │
-                 │  no matching credit
-                 ▼
-          User Payment Intent
-                 │
-                 ▼
-          Rahul Sharma
-           rahul@upi
-```
-
-This lets the system reason about relationships such as:
-
-- claimed sender vs actual recipient,
-- claimed amount vs payment amount,
-- message timing vs payment timing,
-- incoming payment vs refund request,
-- new payee vs established payee,
-- message-derived recipient vs known contact.
-
----
-
-# How It Works
-
-## 1. User Starts a Payment
-
-A simulated UPI-style payment is created:
-
-```text
 ₹5,000
-        ↓
+
 Rahul Sharma
 rahul@upi
+
+Note:
+Refund
+
+[ Review Payment ]
 ```
 
-No real payment is initiated.
+No real payment is executed.
 
----
+### Step 4 — PausePay Review
 
-## 2. System Collects Context
-
-The system retrieves synthetic contextual information:
+The system gathers:
 
 ```text
-Transaction
+Payment
++
 Message
-Payment History
++
+Transaction History
++
 Payee History
++
 Ledger
-User Behaviour
++
+Behaviour
++
+Timing
 ```
 
 ---
 
-## 3. Contextual Payment Graph
+## 6. Contextual Payment Graph
 
-Related entities and events are connected to identify relationships.
+The central technical idea is the **Contextual Payment Graph**.
 
-Example:
+A transaction is represented as a relationship between multiple events.
+
+```text
+                    MESSAGE
+                       │
+                       │
+              "I sent ₹5,000"
+                       │
+                       ▼
+              CLAIMED TRANSFER
+                       │
+                       │
+               No matching credit
+                       │
+                       ▼
+                PAYMENT INTENT
+                       │
+                       │
+                ₹5,000 → Rahul
+                       │
+                       ▼
+                     PAYEE
+```
+
+The graph can connect:
 
 ```text
 Message
-  ├── claimed sender
-  ├── claimed amount
-  ├── requested recipient
-  └── urgency
-          │
-          ▼
-Payment Intent
-  ├── amount
-  ├── recipient
-  └── timestamp
-          │
-          ▼
+   ↕
+Claimed Transfer
+   ↕
 Ledger
-  └── matching incoming payment?
+   ↕
+Payment
+   ↕
+Payee
+   ↕
+Transaction History
 ```
+
+This makes contextual relationships explicit.
 
 ---
 
-## 4. Feature Extraction
+## 7. Context Sources
 
-Raw context becomes structured features.
+PausePay can reason over:
+
+### Message Context
+
+- sender
+- message text
+- claimed amount
+- requested recipient
+- urgency
+- refund intent
+- payment request
+
+### Payment Context
+
+- amount
+- recipient
+- UPI-style identifier
+- timestamp
+- payment note
+
+### Transaction History
+
+- previous payments
+- payment amounts
+- payment frequency
+- previous counterparties
+
+### Payee Context
+
+- first-time payee
+- established payee
+- known contact
+- previous transactions
+
+### Ledger Context
+
+- matching incoming credit
+- transaction amount
+- sender
+- timestamp
+
+### Behavioural Context
+
+- normal payment range
+- typical payment frequency
+- unusual amount
+- unusual timing
+
+---
+
+## 8. Feature Extraction
+
+Raw context becomes structured signals.
 
 ### Transaction / Behaviour
 
@@ -223,6 +366,7 @@ FIRST_TIME_PAYEE
 HIGH_AMOUNT_RELATIVE_TO_BASELINE
 SHORT_LATENCY_AFTER_MESSAGE
 UNUSUAL_TRANSACTION_TIMING
+RAPID_REPEATED_ACTION
 ```
 
 ### Social Engineering
@@ -232,6 +376,7 @@ MISTAKEN_TRANSFER_CLAIM
 URGENCY_PRESSURE
 REFUND_LANGUAGE
 PAYMENT_REQUEST_IN_MESSAGE
+PAYEE_SOURCED_FROM_MESSAGE
 ```
 
 ### Identity
@@ -248,9 +393,20 @@ UNVERIFIED_COUNTERPARTY
 INBOUND_CREDIT_UNVERIFIED
 AMOUNT_ECHO
 NO_MATCHING_INCOMING_PAYMENT
+CLAIMED_SENDER_NOT_FOUND
 ```
 
-### Mitigating Evidence
+---
+
+## 9. Mitigating Evidence
+
+PausePay must not assume:
+
+```text
+New Payee + Large Amount = Scam
+```
+
+It also looks for evidence supporting legitimate behaviour:
 
 ```text
 ESTABLISHED_PAYEE
@@ -260,85 +416,142 @@ RECURRING_PAYMENT_PATTERN
 VERIFIED_MERCHANT_CONTEXT
 ```
 
-Mitigating signals are important because not every unusual payment is malicious.
+This is important for controlling false positives.
 
 ---
 
-# Risk Engine
+## 10. Risk Engine
 
-The risk engine is intentionally **deterministic and inspectable**.
-
-The LLM does not directly decide whether a transaction is fraudulent.
+The core risk engine is deterministic and inspectable.
 
 ```text
-Structured Features
-        ↓
-Signal Evaluation
-        ↓
+Context
+   ↓
+Features
+   ↓
+Signals
+   ↓
 Weighted Evidence
-        ↓
+   ↓
 Risk Score
-        ↓
-LOW / MEDIUM / HIGH
+   ↓
+Risk Band
 ```
 
-The prototype's weights are expert-designed/tuned parameters for the evaluation environment. They are **not presented as scientifically validated fraud probabilities**.
+Risk bands:
 
-## Risk Bands
+### LOW
 
-| Risk | Behaviour |
-|---|---|
-| LOW | Continue with little or no friction |
-| MEDIUM | Show contextual warning |
-| HIGH | Interrupt and require explicit user decision |
+Continue with little or no friction.
 
-A HIGH result means:
+### MEDIUM
 
-> Multiple contextual risk indicators were detected.
+Show contextual warning.
 
-It does **not** mean:
+### HIGH
 
-> Fraud has been proven.
+Interrupt the flow and require explicit user decision.
+
+The risk score is a prototype risk signal, not a probability of fraud.
+
+For example:
+
+```text
+Risk Score: 82
+Risk Band: HIGH
+```
+
+does not mean:
+
+```text
+82% chance of fraud
+```
 
 ---
 
-# Explainability
+## 11. Risk ≠ Fraud Verdict
 
-The warning is evidence-first.
+PausePay deliberately avoids claiming certainty.
 
-Instead of:
+The system should say:
 
-```text
-AI Confidence: 91%
-```
+> **"This payment contains multiple risk indicators."**
 
-the user sees:
+Not:
 
-```text
-⚠️ This payment looks unusual.
+> "This payment is definitely fraudulent."
 
-Why we're warning you:
-
-• We couldn't find a matching incoming ₹5,000 payment.
-• The recipient differs from the person mentioned as the sender.
-• This is a new recipient for you.
-• The payment was started shortly after the message.
-
-This is a risk signal, not a fraud determination.
-```
-
-The explanation prioritises:
-
-1. Strongest evidence
-2. Evidence the user can verify
-3. Plain language
-4. Actionable next steps
+The purpose is to help the user pause and verify the situation.
 
 ---
 
-# User Decision
+## 12. Explainable Warning
 
-The system does not autonomously block the payment.
+For the primary demo scenario:
+
+```text
+┌────────────────────────────────────┐
+│          ⚠ HIGH RISK               │
+│                                    │
+│     This payment looks unusual.    │
+│                                    │
+│ Why we're warning you:             │
+│                                    │
+│ • No matching incoming ₹5,000      │
+│   payment was found.               │
+│                                    │
+│ • The recipient differs from the   │
+│   person described as the sender.  │
+│                                    │
+│ • Rahul is a new recipient for you.│
+│                                    │
+│ • The payment closely followed     │
+│   the message.                     │
+│                                    │
+│ • The payment amount matches the   │
+│   amount mentioned in the message.│
+│                                    │
+│ This is a risk signal, not a       │
+│ fraud determination.               │
+│                                    │
+│ [ GO BACK ]   [ CONTINUE ANYWAY ]  │
+└────────────────────────────────────┘
+```
+
+The explanation is generated from structured evidence.
+
+---
+
+## 13. Evidence View
+
+Provide an expandable technical evidence view:
+
+```text
+WHY DID PAUSEPAY FLAG THIS?
+
+MESSAGE
+"Accidentally sent ₹5,000"
+
+LEDGER
+"No matching incoming ₹5,000"
+
+PAYEE
+"First transaction with Rahul"
+
+IDENTITY
+"Claimed sender ≠ payment recipient"
+
+TIMING
+"Payment started 2 minutes after message"
+```
+
+Each evidence item should explain itself in plain language.
+
+---
+
+## 14. User Decision
+
+The final decision remains with the user.
 
 ```text
                     HIGH RISK
@@ -348,146 +561,279 @@ The system does not autonomously block the payment.
           GO BACK          CONTINUE ANYWAY
              │                   │
              ▼                   ▼
-       Payment stopped       User proceeds
+       Payment stopped      Simulated payment
 ```
 
-Both outcomes are recorded.
+### GO BACK
 
-This makes the product a **decision-support and intervention layer**, rather than an autonomous payment blocker.
+```text
+Payment cancelled.
+
+You paused before sending.
+```
+
+Record:
+
+```text
+decision:
+GO_BACK
+
+outcome:
+PAYMENT_NOT_SENT
+```
+
+### CONTINUE ANYWAY
+
+```text
+You chose to continue despite the warning.
+
+No real payment was made.
+```
+
+Record:
+
+```text
+decision:
+CONTINUE_ANYWAY
+
+outcome:
+PAYMENT_COMPLETED_SIMULATION
+```
 
 ---
 
-# Synthetic Data
+## 15. Audit Trace
 
-The prototype uses synthetic data only.
-
-No real:
-
-- bank account data,
-- UPI credentials,
-- UPI PINs,
-- OTPs,
-- payment credentials,
-- banking API integrations
-
-are required.
-
-The **scenario taxonomy** is based on documented digital-payment/social-engineering fraud patterns, while the actual transaction records, users, messages, and payment histories used in the prototype are synthetic.
-
-This distinction is important:
+Every assessment should be reconstructable.
 
 ```text
-Real-world fraud patterns
-          ↓
-Scenario taxonomy
-          ↓
-Synthetic conversations
-          ↓
-Synthetic transactions
-          ↓
-Evaluation dataset
+10:42:01
+Message received
+
+      ↓
+
+10:43:10
+Payment initiated
+
+      ↓
+
+10:43:12
+PausePay review requested
+
+      ↓
+
+10:43:13
+Context aggregated
+
+      ↓
+
+10:43:14
+Signals evaluated
+
+      ↓
+
+10:43:14
+HIGH risk generated
+
+      ↓
+
+10:43:15
+Warning displayed
+
+      ↓
+
+10:43:21
+User selected GO BACK
 ```
 
-The ₹5,000 example used in the demo is therefore a **synthetic representation of a real-world scam pattern**, not a claim that this exact transaction happened to a real victim.
+Display:
+
+```text
+Assessment ID
+Payment ID
+Risk Score
+Risk Band
+Signals
+Mitigators
+User Decision
+Outcome
+Engine Version
+Processing Time
+```
 
 ---
 
-# Example Scenario
+## 16. Primary Demo Scenario
 
-## High-Risk Scenario
+### Mistaken Transfer Scam
 
-### Message
-
-```text
-I accidentally sent ₹5,000 to you.
-Please return it immediately to rahul@upi.
-```
-
-### Payment
+Message:
 
 ```text
-Amount:       ₹5,000
-Recipient:    Rahul Sharma
-UPI:          rahul@upi
+"I accidentally sent ₹5,000 to you.
+Please return it immediately to rahul@upi."
 ```
 
-### Context
+Payment:
 
 ```text
-✓ No matching ₹5,000 incoming credit
-✓ Recipient differs from claimed sender
-✓ New payee
-✓ Payment amount matches message amount
-✓ Payment started shortly after message
+₹5,000
+Rahul Sharma
+rahul@upi
 ```
 
-### Result
+Context:
+
+```text
+No matching ₹5,000 incoming credit
++
+New payee
++
+Recipient mismatch
++
+Amount echo
++
+Urgency
++
+Short latency
+```
+
+Result:
 
 ```text
 HIGH RISK
 ```
 
-The user receives the explanation and can choose:
+The user receives the warning and chooses:
 
 ```text
-GO BACK
-CONTINUE ANYWAY
+[ GO BACK ] [ CONTINUE ANYWAY ]
 ```
 
 ---
 
-# Legitimate Lookalike
+## 17. Legitimate Lookalike Scenario
 
-The system also tests legitimate scenarios that resemble scams.
+PausePay must demonstrate that it does not simply flag every unusual payment.
 
-Example:
+Message:
 
 ```text
-Message:
 "Please send ₹5,000 to Rahul for the group booking."
+```
 
 Payment:
-₹5,000 → Rahul Sharma
-```
-
-Additional context:
 
 ```text
-✓ Known contact
-✓ Established payee
-✓ Prior legitimate transactions
-✓ Consistent conversation
+₹5,000
+Rahul Sharma
 ```
 
-This tests whether the engine can use **mitigating evidence** instead of assuming:
+Context:
 
 ```text
-new/large/urgent payment = scam
+Known contact
++
+Established payee
++
+Prior legitimate transactions
++
+Consistent conversation
+```
+
+Expected behaviour:
+
+```text
+LOW / MEDIUM
+```
+
+depending on the configured risk engine.
+
+The purpose is to show:
+
+> **Large or new payments are not automatically scams.**
+
+Mitigating evidence matters.
+
+---
+
+## 18. Scenario Library
+
+The prototype should support multiple synthetic scenarios.
+
+### Scam-oriented
+
+1. Mistaken transfer / refund
+2. Fake buyer / seller
+3. Fake support request
+4. Fake authority
+5. Urgency-based payment
+6. Deceptive payment request
+7. QR/payment instruction deception
+
+### Legitimate lookalikes
+
+1. Legitimate group payment
+2. Known merchant payment
+3. New payee but legitimate payment
+4. Large payment to an established contact
+
+Each scenario should have coherent:
+
+```text
+Message
+Payment
+Ledger
+Payee History
+Transaction History
+Behaviour
+Timing
+Expected Label
 ```
 
 ---
 
-# Evaluation
+## 19. Synthetic Data
 
-The same production risk engine used by the application is used for offline evaluation.
+All demonstration data is synthetic.
+
+The scenario taxonomy can be grounded in documented real-world digital-payment and social-engineering fraud patterns.
+
+However:
 
 ```text
-Synthetic Dataset
-       │
-       ├── Development Set
-       ├── Holdout Set
-       └── Adversarial Set
-                │
-                ▼
-          Same Risk Engine
-                │
-                ▼
-        Predictions + Metrics
+Real-world pattern
+        ↓
+Synthetic scenario
+        ↓
+Synthetic message
+        ↓
+Synthetic transaction
+        ↓
+Synthetic evaluation
 ```
 
-## Metrics
+The exact ₹5,000 scenario is a synthetic representation of a fraud pattern, not a claim that this exact transaction happened to a real person.
 
-The evaluation measures:
+---
+
+## 20. Evaluation
+
+The application and evaluation pipeline should use the **same deterministic risk engine**.
+
+```text
+                 Risk Engine
+                     │
+            ┌────────┴────────┐
+            ▼                 ▼
+       Live Application    Evaluation
+                              │
+                 ┌────────────┼────────────┐
+                 ▼            ▼            ▼
+             Development   Holdout     Adversarial
+```
+
+Metrics:
 
 - Accuracy
 - Precision
@@ -497,15 +843,21 @@ The evaluation measures:
 - False Negative Rate
 - Response Latency
 
-Scenario-family breakdowns can also be generated.
+Do not fabricate benchmark results.
+
+If evaluation has not been run:
+
+```text
+Evaluation Pending
+```
 
 ---
 
-## Dataset Strategy
+## 21. Evaluation Dataset Strategy
 
-Evaluation should not rely only on cases that were created from the exact same templates as the risk rules.
+Avoid evaluating only on examples that look exactly like the development examples.
 
-The dataset therefore includes variations such as:
+Include:
 
 ```text
 Different message wording
@@ -514,68 +866,58 @@ Different amounts
 Different timing
 Legitimate high-value payments
 Legitimate new payees
-Obfuscated scam language
-Combinations of weak signals
+Adversarial scam phrasing
+Weak-signal combinations
 ```
 
-This provides a stronger test of whether the system generalises beyond the obvious demo case.
+This provides a more meaningful test of generalisation.
 
 ---
 
-# Architecture
+## 22. Optional NLP / LLM Layer
+
+An LLM may optionally help understand natural-language messages.
+
+Example:
 
 ```text
-┌───────────────────────────────────────────────────────────────┐
-│                         USER INTERFACE                        │
-│                                                               │
-│ Message Context → Simulated Payment → Review Payment          │
-└───────────────────────────────┬───────────────────────────────┘
-                                │
-                                ▼
-┌───────────────────────────────────────────────────────────────┐
-│                     CONTEXT AGGREGATOR                        │
-│                                                               │
-│ Transaction • Message • Behaviour • Payee • Ledger           │
-└───────────────────────────────┬───────────────────────────────┘
-                                │
-                                ▼
-┌───────────────────────────────────────────────────────────────┐
-│                  CONTEXTUAL PAYMENT GRAPH                     │
-└───────────────────────────────┬───────────────────────────────┘
-                                │
-                                ▼
-┌───────────────────────────────────────────────────────────────┐
-│                      FEATURE EXTRACTOR                        │
-└───────────────────────────────┬───────────────────────────────┘
-                                │
-                                ▼
-┌───────────────────────────────────────────────────────────────┐
-│                        RISK ENGINE                            │
-│                                                               │
-│             Evidence → Score → Risk Band                     │
-└───────────────────────────────┬───────────────────────────────┘
-                                │
-                                ▼
-┌───────────────────────────────────────────────────────────────┐
-│                    EXPLANATION ENGINE                         │
-└───────────────────────────────┬───────────────────────────────┘
-                                │
-                                ▼
-┌───────────────────────────────────────────────────────────────┐
-│                     USER INTERVENTION                         │
-│                                                               │
-│              Go Back  ←→  Continue Anyway                     │
-└───────────────────────────────┬───────────────────────────────┘
-                                │
-                                ▼
-┌───────────────────────────────────────────────────────────────┐
-│                        AUDIT TRACE                             │
-└───────────────────────────────────────────────────────────────┘
+"I accidentally sent ₹5,000 to you.
+Please return it immediately to rahul@upi."
 ```
+
+Extract:
+
+```json
+{
+  "claimedAmount": 5000,
+  "requestedRecipient": "rahul@upi",
+  "urgency": "high",
+  "intent": "refund",
+  "paymentRequest": true
+}
+```
+
+Architecture:
+
+```text
+Raw Message
+     ↓
+NLP / LLM
+     ↓
+Structured Facts
+     ↓
+Feature Extraction
+     ↓
+Deterministic Risk Engine
+```
+
+The LLM does **not** make the final fraud decision.
+
+The application must still work without an external LLM API.
 
 ---
 
-# Technology Stack
+## 23. Technology Stack
 
 | Layer | Technology |
 |---|---|
@@ -590,28 +932,91 @@ This provides a stronger test of whether the system generalises beyond the obvio
 | Testing | Vitest |
 | Evaluation | Python |
 | Data Analysis | pandas + scikit-learn |
-| Visualisation | Recharts / Matplotlib |
+| Charts | Recharts |
+| Optional Motion | Framer Motion |
 | Optional NLP | LLM structured extraction |
 
-The architecture is intentionally local-first for reliable hackathon demonstration.
+The architecture is local-first for reliable hackathon demonstration.
 
 ---
 
-# Project Structure
+## 24. Application Architecture
 
 ```text
-authorised-to-lose/
+┌───────────────────────────────────────────────────────────┐
+│                 SIMULATED HOST APPLICATIONS                │
+│                                                           │
+│      Messages App  →  Payment App  →  PausePay Layer     │
+└───────────────────────────┬───────────────────────────────┘
+                            │
+                            ▼
+┌───────────────────────────────────────────────────────────┐
+│                     PAYMENT INTENT                        │
+└───────────────────────────┬───────────────────────────────┘
+                            │
+                            ▼
+┌───────────────────────────────────────────────────────────┐
+│                   CONTEXT AGGREGATOR                      │
+│                                                           │
+│ Message • Payment • History • Payee • Ledger • Behaviour │
+└───────────────────────────┬───────────────────────────────┘
+                            │
+                            ▼
+┌───────────────────────────────────────────────────────────┐
+│               CONTEXTUAL PAYMENT GRAPH                    │
+└───────────────────────────┬───────────────────────────────┘
+                            │
+                            ▼
+┌───────────────────────────────────────────────────────────┐
+│                    FEATURE EXTRACTION                     │
+└───────────────────────────┬───────────────────────────────┘
+                            │
+                            ▼
+┌───────────────────────────────────────────────────────────┐
+│                     RISK ENGINE                           │
+│                                                           │
+│             Signals → Evidence → Score → Band             │
+└───────────────────────────┬───────────────────────────────┘
+                            │
+                            ▼
+┌───────────────────────────────────────────────────────────┐
+│                 EXPLANATION ENGINE                        │
+└───────────────────────────┬───────────────────────────────┘
+                            │
+                            ▼
+┌───────────────────────────────────────────────────────────┐
+│                    USER DECISION                          │
+│                                                           │
+│             GO BACK  ←→  CONTINUE ANYWAY                  │
+└───────────────────────────┬───────────────────────────────┘
+                            │
+                            ▼
+┌───────────────────────────────────────────────────────────┐
+│                     AUDIT TRACE                           │
+└───────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 25. Project Structure
+
+```text
+pausepay/
 │
 ├── apps/
 │   └── web/
 │       ├── app/
 │       │   ├── page.tsx
+│       │   ├── demo/
+│       │   ├── messages/
+│       │   ├── payment/
 │       │   ├── review/
 │       │   ├── scenarios/
 │       │   ├── analytics/
 │       │   └── api/
 │       │
 │       ├── components/
+│       │   ├── messages/
 │       │   ├── payment/
 │       │   ├── risk/
 │       │   ├── graph/
@@ -619,18 +1024,17 @@ authorised-to-lose/
 │       │   ├── scenarios/
 │       │   └── ui/
 │       │
-│       ├── lib/
-│       └── styles/
+│       └── lib/
 │
 ├── packages/
 │   ├── risk-engine/
 │   │   ├── src/
-│   │   │   ├── types/
 │   │   │   ├── context/
 │   │   │   ├── features/
 │   │   │   ├── signals/
 │   │   │   ├── scoring/
-│   │   │   └── explanation/
+│   │   │   ├── explanation/
+│   │   │   └── types/
 │   │   └── tests/
 │   │
 │   └── schemas/
@@ -650,17 +1054,16 @@ authorised-to-lose/
 │   ├── evaluate.py
 │   ├── metrics.py
 │   ├── confusion_matrix.py
-│   ├── category_analysis.py
-│   ├── latency.py
 │   └── results/
 │
 ├── scripts/
 ├── tests/
+│
 ├── docs/
 │   ├── architecture.md
+│   ├── demo.md
 │   ├── evaluation.md
-│   ├── scenarios.md
-│   └── demo.md
+│   └── scenarios.md
 │
 ├── .env.example
 ├── package.json
@@ -672,133 +1075,79 @@ authorised-to-lose/
 
 ---
 
-# Getting Started
+## 26. Database Model
 
-## Prerequisites
-
-- Node.js 20+
-- pnpm
-- Python 3.10+
-- Git
-
----
-
-## 1. Clone
-
-```bash
-git clone <repository-url>
-cd authorised-to-lose
-```
-
----
-
-## 2. Install Dependencies
-
-```bash
-pnpm install
-```
-
----
-
-## 3. Configure Environment
-
-Copy the example environment file:
-
-```bash
-cp .env.example .env
-```
-
-For Windows PowerShell:
-
-```powershell
-Copy-Item .env.example .env
-```
-
-The prototype should work without any real financial integration.
-
-If optional LLM/NLP functionality is enabled, configure the relevant provider key in `.env`.
-
----
-
-## 4. Initialise Database
-
-```bash
-pnpm prisma generate
-pnpm prisma migrate dev
-```
-
-Seed the synthetic data:
-
-```bash
-pnpm prisma db seed
-```
-
----
-
-## 5. Start Development Server
-
-```bash
-pnpm dev
-```
-
-Open the local application shown by Next.js.
-
----
-
-# Demo
-
-The recommended demonstration flow is:
+Logical entities:
 
 ```text
-1. Open the simulated message
-          ↓
-2. Show the claimed ₹5,000 transfer
-          ↓
-3. Open the payment screen
-          ↓
-4. Enter/select Rahul Sharma
-          ↓
-5. Click "Review Payment"
-          ↓
-6. Show contextual analysis
-          ↓
-7. Reveal risk signals
-          ↓
-8. Show plain-language warning
-          ↓
-9. Choose "Go Back"
-          ↓
-10. Open legitimate lookalike scenario
-          ↓
-11. Show mitigating evidence
-          ↓
-12. Show evaluation results
+User
+ ├── Transaction[]
+ ├── Message[]
+ └── UserBehaviour[]
+
+Payee
+ └── Transaction[]
+
+Transaction
+ ├── User
+ ├── Payee
+ └── Assessment[]
+
+Message
+ └── User
+
+LedgerEntry
+ └── User
+
+Assessment
+ ├── Transaction
+ ├── Features
+ ├── Signals
+ ├── Mitigators
+ ├── Score
+ ├── RiskBand
+ ├── Explanation
+ └── UserDecision
 ```
 
-### Pitch line
+Assessment should retain:
 
-> **"Our system doesn't ask whether a payment is unusual. It asks whether the context around that payment makes sense."**
+```text
+assessmentId
+paymentId
+timestamp
+features
+signals
+mitigators
+riskScore
+riskBand
+explanation
+userDecision
+outcome
+engineVersion
+processingTimeMs
+```
 
 ---
 
-# API
+## 27. API
 
-## Review Payment
+### Review Payment
 
 ```http
 POST /api/payments/:id/review
 ```
 
-The endpoint:
+Responsibilities:
 
-1. Loads the payment
-2. Aggregates contextual data
-3. Constructs the contextual payment representation
-4. Extracts features
-5. Evaluates risk
-6. Generates an explanation
-7. Persists the assessment
-8. Returns the assessment
+1. Load payment context
+2. Aggregate contextual data
+3. Build contextual payment representation
+4. Extract features
+5. Evaluate risk
+6. Generate explanation
+7. Persist assessment
+8. Return assessment
 
 Example:
 
@@ -821,9 +1170,7 @@ Example:
 }
 ```
 
----
-
-## Record User Decision
+### Record Decision
 
 ```http
 POST /api/assessments/:id/decision
@@ -847,221 +1194,406 @@ or:
 
 ---
 
-# Testing
+## 28. Security & Privacy
 
-Run unit tests:
-
-```bash
-pnpm test
-```
-
-Run with coverage:
-
-```bash
-pnpm test:coverage
-```
-
-The most important tests cover:
-
-```text
-Feature extraction
-Risk signal activation
-Mitigator behaviour
-Risk-band thresholds
-Explanation generation
-Scam scenarios
-Legitimate lookalikes
-API review flow
-User decision recording
-```
-
----
-
-# Evaluation Commands
-
-A typical evaluation flow:
-
-```bash
-pnpm generate:scenarios
-pnpm evaluate
-```
-
-Or run the Python evaluator directly:
-
-```bash
-python evaluation/evaluate.py
-```
-
-Expected outputs may include:
-
-```text
-Accuracy
-Precision
-Recall
-F1
-False Positive Rate
-False Negative Rate
-Average Latency
-Confusion Matrix
-Scenario Breakdown
-```
-
----
-
-# Limitations
-
-This is a hackathon prototype and should not be interpreted as a production fraud-prevention system.
-
-### 1. Synthetic Data
-
-Synthetic evaluation does not establish performance on real-world financial fraud.
-
-### 2. False Positives
-
-Legitimate transactions can contain signals associated with scams.
-
-For example:
-
-```text
-new payee
-+
-large amount
-+
-urgent message
-```
-
-can still be legitimate.
-
-### 3. False Negatives
-
-Sophisticated scams may avoid the patterns represented in the prototype.
-
-### 4. Rule Tuning
-
-The risk weights are prototype parameters and require validation using real-world data before production deployment.
-
-### 5. NLP Errors
-
-Message interpretation may be incorrect or ambiguous.
-
-### 6. Incomplete Context
-
-A production financial institution may have access to signals unavailable to this prototype.
-
-### 7. No Real Payment Integration
-
-The application intentionally uses simulated payments.
-
----
-
-# Safety & Privacy
-
-Authorised to Lose is designed to avoid collecting sensitive financial credentials.
-
-The prototype does **not** require:
+The prototype must never request:
 
 - UPI PIN
 - OTP
-- bank passwords
+- bank password
 - card credentials
-- real bank account access
-- real UPI payment execution
+- banking login
+- real account access
 
-All demonstration data should remain synthetic.
+The prototype must not:
 
-The project is intended for:
+- execute real payments,
+- connect to bank accounts,
+- monitor real third-party applications,
+- store real financial credentials.
 
-- education,
-- research,
-- hackathon demonstration,
-- evaluation of contextual risk reasoning.
-
-It is not a production financial service.
+All demonstration information should be synthetic.
 
 ---
 
-# Future Scope
+## 29. Failure Modes
 
-A production-grade implementation could extend the prototype with:
+### False Positives
+
+A legitimate transaction may look suspicious.
 
 ```text
-Real-time payment event streams
-        ↓
-Identity / counterparty verification
-        ↓
-Behavioural baselines
-        ↓
-Advanced graph analysis
-        ↓
-ML-assisted feature extraction
-        ↓
-Deterministic risk policy
-        ↓
-Real-time intervention
-        ↓
-Auditable decision infrastructure
+New Payee
++
+Large Amount
++
+Urgent Message
 ```
 
-Potential additions:
+does not automatically mean fraud.
 
-- streaming event ingestion,
-- stronger counterparty identity signals,
+### False Negatives
+
+A sophisticated scam may avoid known patterns.
+
+### Synthetic Data Limitation
+
+Synthetic evaluation does not prove real-world fraud-detection performance.
+
+### Rule Tuning
+
+Risk weights are prototype parameters and require real-world validation.
+
+### NLP Errors
+
+Message extraction may be incomplete or incorrect.
+
+### Missing Context
+
+A production payment platform may have signals unavailable to the prototype.
+
+---
+
+## 30. UX Principles
+
+The interface should communicate:
+
+1. **Context over isolated transaction data**
+2. **Evidence over opaque AI confidence**
+3. **Warning over autonomous blocking**
+4. **User decision over system decision**
+5. **Simple language over technical jargon**
+
+The user should understand the warning in seconds.
+
+---
+
+## 31. Visual Design
+
+PausePay should feel like:
+
+```text
+Fintech
++
+Financial Security
++
+Technical Intelligence
++
+Trust
+```
+
+Use:
+
+- dark charcoal / near-black background,
+- white typography,
+- muted grey surfaces,
+- amber/orange for warnings,
+- red only for HIGH risk,
+- green for legitimate/low-risk states,
+- subtle borders,
+- clean cards,
+- strong spacing.
+
+Typography:
+
+```text
+Inter
+Geist
+IBM Plex Sans
+```
+
+Prefer:
+
+- payment interfaces,
+- message bubbles,
+- evidence cards,
+- contextual graphs,
+- timelines,
+- risk states,
+- architecture diagrams.
+
+Avoid:
+
+- generic AI brain illustrations,
+- stock finance photos,
+- excessive gradients,
+- excessive glassmorphism,
+- decorative cybersecurity shields,
+- meaningless animations.
+
+---
+
+## 32. Demo Mode
+
+Create:
+
+```text
+[ START DEMO ]
+```
+
+The main demonstration:
+
+```text
+01 MESSAGE
+       ↓
+02 REVIEW WITH PAUSEPAY
+       ↓
+03 PAYMENT
+       ↓
+04 REVIEW PAYMENT
+       ↓
+05 CONTEXT
+       ↓
+06 RISK
+       ↓
+07 EVIDENCE
+       ↓
+08 USER DECISION
+       ↓
+09 AUDIT
+```
+
+Add a progress indicator:
+
+```text
+Message → Payment → Context → Risk → Decision
+```
+
+The entire story should be demonstrable in approximately 2–3 minutes.
+
+---
+
+## 33. Judge Demo
+
+The ideal judge experience:
+
+```text
+"I receive a suspicious message."
+
+        ↓
+
+"I click Review with PausePay."
+
+        ↓
+
+"I don't copy anything."
+
+        ↓
+
+"The payment context follows automatically."
+
+        ↓
+
+"I start the payment."
+
+        ↓
+
+"PausePay pauses the decision."
+
+        ↓
+
+"It shows me the contextual relationship."
+
+        ↓
+
+"It explains exactly why the payment is risky."
+
+        ↓
+
+"I choose Go Back."
+
+        ↓
+
+"The decision is recorded."
+
+        ↓
+
+"I run a legitimate lookalike."
+
+        ↓
+
+"PausePay considers the mitigating evidence."
+```
+
+---
+
+## 34. What We Demonstrate vs What We Claim
+
+### We demonstrate
+
+- Simulated Messages application
+- Simulated Payment application
+- Context transfer without copy-paste
+- Contextual payment analysis
+- Contextual Payment Graph
+- Deterministic risk engine
+- Explainable warning
+- User-controlled intervention
+- Audit trace
+- Synthetic evaluation
+
+### We do not claim
+
+- Real WhatsApp monitoring
+- Real SMS interception
+- Google Pay integration
+- PhonePe integration
+- Paytm integration
+- Real bank integration
+- Real UPI payment execution
+- Guaranteed fraud prevention
+- Production-level fraud-detection accuracy
+
+Correct positioning:
+
+> **"PausePay is a contextual payment safety-layer prototype demonstrated using simulated host applications."**
+
+---
+
+## 35. Future Production Architecture
+
+```text
+Payment / Banking Channel
+          ↓
+       Risk Gateway
+          ↓
+    Context Services
+     ┌────┼────┐
+     ↓    ↓    ↓
+   Ledger Identity Behaviour
+     └────┼────┘
+          ↓
+ Contextual Payment Graph
+          ↓
+ Feature / Signal Engine
+          ↓
+ ┌────────┴────────┐
+ ↓                 ↓
+Deterministic    ML/NLP
+Risk Engine      Assistance
+ └────────┬────────┘
+          ↓
+ Explanation Layer
+          ↓
+ User Intervention
+          ↓
+ Audit Infrastructure
+```
+
+Possible future additions:
+
+- real-time event streams,
+- stronger counterparty verification,
+- behavioural modelling,
 - graph-based anomaly detection,
-- model-assisted NLP,
+- ML-assisted NLP,
 - feature stores,
-- model/rule versioning,
-- human-review workflows,
+- rule/model versioning,
+- human review workflows,
 - privacy-preserving analytics,
-- real-time monitoring,
-- production audit infrastructure.
+- real-time monitoring.
+
+These are future considerations, not dependencies of the hackathon prototype.
 
 ---
 
-# Why This Architecture?
+## 36. Hackathon Implementation Plan
 
-The architecture deliberately separates:
+### Phase 1 — Simulated Host Apps
+
+Implement:
 
 ```text
-Understanding
-     ↓
-Evidence
-     ↓
-Risk
-     ↓
-Explanation
-     ↓
-Decision
+Messages App
+    ↓
+Contextual Review Action
+    ↓
+Payment App
+    ↓
+Review Payment
 ```
 
-This provides several advantages:
+The transition should feel like a safety layer rather than a separate data-entry tool.
 
-### Inspectability
+### Phase 2 — Context Engine
 
-Every risk decision can be traced back to concrete signals.
+Implement:
 
-### Explainability
+```text
+Message
++
+Payment
++
+History
++
+Ledger
++
+Payee
++
+Behaviour
+```
 
-The user sees why the warning appeared.
+and produce a unified context object.
 
-### Reproducibility
+### Phase 3 — Risk Engine
 
-The deterministic risk engine can produce the same result for the same context.
+Implement:
 
-### Evaluation
+```text
+Features
+→ Signals
+→ Score
+→ Risk Band
+```
 
-The same engine can be benchmarked against synthetic holdout and adversarial datasets.
+### Phase 4 — Explanation
 
-### User Agency
+Render:
 
-The system warns rather than silently deciding for the user.
+```text
+Risk
++
+Top Evidence
++
+Mitigating Evidence
++
+Recommended Verification
+```
 
-### Extensibility
+### Phase 5 — User Decision
 
-NLP/LLM capabilities can be added without giving the LLM direct authority over the final risk decision.
+Implement:
+
+```text
+GO BACK
+CONTINUE ANYWAY
+```
+
+and persist the outcome.
+
+### Phase 6 — Evaluation
+
+Run the same engine against:
+
+```text
+Development
+Holdout
+Adversarial
+```
+
+### Phase 7 — Polish
+
+Only after the vertical slice works:
+
+- improve animations,
+- improve graph visualisation,
+- add analytics,
+- add optional NLP,
+- improve presentation mode.
 
 ---
 
-# Architecture Principles
+## 37. Architecture Principles
 
 1. **Context over isolated transaction features**
 2. **Risk signal over fraud verdict**
@@ -1070,56 +1602,69 @@ NLP/LLM capabilities can be added without giving the LLM direct authority over t
 5. **User intervention over autonomous blocking**
 6. **Synthetic data for the prototype**
 7. **Auditability by default**
-8. **False-positive control through mitigating evidence**
-9. **Evaluation separate from development examples**
-10. **Local-first architecture for reliable demonstration**
+8. **Mitigating evidence for false-positive control**
+9. **Holdout/adversarial evaluation**
+10. **Local-first demonstration**
+11. **Simulated host applications for honest integration demonstration**
 
 ---
 
-# One-Line Summary
+## 38. Final Product Statement
 
-> **Authorised to Lose is a contextual payment safety layer that combines transaction, message, behavioural, payee, and ledger evidence into an inspectable risk signal, explains the reasons before confirmation, and lets the user make the final decision.**
+> **PausePay is a contextual payment safety layer that connects messages, payment intent, transaction history, payee relationships, ledger evidence, behaviour, and timing to identify explainable risk before a user commits a payment.**
 
----
-
-## Hackathon Positioning
-
-### Problem
-
-Social engineering can make a technically valid payment unsafe.
-
-### Insight
-
-The strongest evidence may exist **outside the transaction itself**.
-
-### Solution
-
-Connect the payment with its surrounding context before confirmation.
-
-### Differentiator
-
-**Contextual reasoning + evidence trace + user-controlled intervention.**
-
-### Demo Moment
+The user gets one important moment:
 
 ```text
-Message
-   ↓
-₹5,000 Payment
-   ↓
-"Review Payment"
-   ↓
-Contextual Graph
-   ↓
-Risk Signals
-   ↓
-⚠️ Explainable Warning
-   ↓
-Go Back / Continue Anyway
+        BEFORE YOU PAY
+              ↓
+          PAUSEPAY
+              ↓
+      Understand the context
+              ↓
+          Make YOUR decision
 ```
 
 ---
 
-## License
+## 39. One-Line Pitch
 
-Add the project's chosen license here before public release.
+> **"PausePay gives users a second opinion before they pay by checking whether the story surrounding a payment actually makes sense."**
+
+---
+
+## 40. Final Demo Story
+
+```text
+                    MESSAGE
+                       ↓
+          "I accidentally sent ₹5,000"
+                       ↓
+              REVIEW WITH PAUSEPAY
+                       ↓
+                    PAYMENT
+                       ↓
+                REVIEW PAYMENT
+                       ↓
+              CONTEXT AGGREGATION
+                       ↓
+            CONTEXTUAL PAYMENT GRAPH
+                       ↓
+                 RISK SIGNALS
+                       ↓
+                  ⚠ HIGH RISK
+                       ↓
+                WHY WE'RE WARNING
+                       ↓
+              ┌────────┴────────┐
+              ↓                 ↓
+           GO BACK        CONTINUE ANYWAY
+              ↓
+        PAYMENT STOPPED
+              ↓
+          AUDIT TRACE
+```
+
+**PausePay**
+
+> **Don't just check the payment. Check the context.**
