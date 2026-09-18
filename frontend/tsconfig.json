@@ -19,7 +19,9 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@pausepay/risk-engine": ["../backend/risk-engine/src"],
+      "@pausepay/risk-engine/*": ["../backend/risk-engine/src/*"]
     }
   },
   "include": [

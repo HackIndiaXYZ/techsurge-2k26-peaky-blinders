@@ -268,8 +268,20 @@ export function mapDatabaseContextToDomain(
   return {
     message: messageContext,
     payment: paymentContext,
+    transactionHistory: [],
     payee: payeeContext,
+    payeeHistory: {
+      transactionCount: payeeContext.transactionCount,
+      totalAmount: payeeContext.totalHistoricalAmount,
+      averageAmount: payeeContext.averageTransactionAmount,
+      established: !payeeContext.isFirstTime,
+    },
     ledger: ledgerContext,
     behaviour: behaviourContext,
+    timing: {
+      paymentHour: new Date(paymentContext.timestamp).getHours(),
+      isShortLatency: false,
+      isUnusualPaymentTime: false,
+    },
   };
 }

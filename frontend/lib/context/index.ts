@@ -1,22 +1,16 @@
 import {
-  getPaymentDatabaseContext,
-} from "./aggregator";
+  contextAggregator,
+} from "../../../backend/risk-engine/src/context";
 
 import {
-  mapDatabaseContextToDomain,
-} from "./mapper";
-
-import type {
-  PaymentContextBundle,
-} from "../../../backend/risk-engine/src/types";
+  loadContextInput,
+} from "./prismaContextLoader";
 
 export async function buildPaymentContext(
   paymentId: string
-): Promise<PaymentContextBundle> {
-  const databaseContext =
-    await getPaymentDatabaseContext(paymentId);
+) {
+  const input =
+    await loadContextInput(paymentId);
 
-  return mapDatabaseContextToDomain(
-    databaseContext
-  );
+  return contextAggregator(input);
 }
