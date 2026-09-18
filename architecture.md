@@ -39,9 +39,9 @@ Each signal is inspectable and contributes to the final risk assessment.
 
 ```text
 ┌───────────────────────────────────────────────────────────────┐
-│                         User Interface                        │
+│                 Simulated Host Applications                  │
 │                                                               │
-│  Message Context → Simulated Payment → Review Payment        │
+│  Messages App → Payment App → Review with Authorised to Lose  │
 └───────────────────────────────┬───────────────────────────────┘
                                 │
                                 ▼
@@ -115,9 +115,91 @@ Each signal is inspectable and contributes to the final risk assessment.
 
 ---
 
-## 4. Core Request Flow
+## 4. Simulated Host Application Architecture
 
-### Step 1 — Payment Intent
+### Purpose
+
+The hackathon prototype demonstrates Authorised to Lose as a **safety layer around a payment decision** without pretending to have unrestricted access to real third-party applications.
+
+The prototype contains simulated host applications:
+
+```text
+┌──────────────────────────────┐
+│       Simulated Messages     │
+│                              │
+│ Rahul:                       │
+│ "I accidentally sent ₹5,000. │
+│  Please return it to         │
+│  rahul@upi immediately."     │
+│                              │
+│ [ Review with Authorised     │
+│   to Lose ]                  │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│   Authorised to Lose Layer   │
+│                              │
+│ Message context attached     │
+│ automatically in the demo    │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│       Simulated Payment      │
+│                              │
+│ ₹5,000                       │
+│ Rahul Sharma                 │
+│ rahul@upi                    │
+│                              │
+│ [ Review Payment ]           │
+└──────────────┬───────────────┘
+               │
+               ▼
+       Contextual Risk Analysis
+```
+
+The intended experience is:
+
+```text
+See → Review → Understand → Decide
+```
+
+rather than:
+
+```text
+Copy → Paste → Analyse
+```
+
+### What is simulated?
+
+The prototype simulates the integration boundary between a messaging application, a payment application, and the Authorised to Lose safety layer.
+
+The host applications are **not real third-party applications**. The prototype does not claim to monitor or inject UI into WhatsApp, SMS, Google Pay, PhonePe, Paytm, or another real application.
+
+### Production vision
+
+In a production system, the safety layer could be integrated through supported OS, messaging, and payment-provider mechanisms. The exact mechanism would depend on the capabilities and policies of the relevant platform or payment provider.
+
+This hackathon implementation deliberately keeps that boundary simulated so the team can demonstrate the product concept without requiring real banking or third-party application access.
+
+---
+
+## 5. Core Request Flow
+
+### Step 1 — Host-App Context
+
+The user sees a message inside the **simulated Messages app** and selects the contextual review action. The demo passes the message context directly to Authorised to Lose — there is no copy-paste step.
+
+```text
+Simulated Messages
+       ↓
+Review with Authorised to Lose
+       ↓
+Context attached
+```
+
+### Step 2 — Payment Intent
 
 The user starts a simulated UPI-style payment.
 
@@ -137,7 +219,7 @@ No real payment is initiated.
 
 ---
 
-### Step 2 — Context Aggregation
+### Step 3 — Context Aggregation
 
 Before confirmation, the system collects the available synthetic context.
 
@@ -155,7 +237,7 @@ The goal is to evaluate the payment in context rather than treating it as an iso
 
 ---
 
-### Step 3 — Contextual Payment Graph
+### Step 4 — Contextual Payment Graph
 
 The system converts related events into a contextual relationship graph.
 
@@ -188,7 +270,7 @@ This makes relationships such as **amount matching**, **identity mismatch**, and
 
 ---
 
-## 5. Feature Extraction
+## 6. Feature Extraction
 
 Feature extraction converts raw context into structured signals.
 
@@ -244,7 +326,7 @@ Mitigators are important for controlling false positives.
 
 ---
 
-## 6. Risk Engine
+## 7. Risk Engine
 
 The risk engine is deterministic and inspectable.
 
@@ -292,7 +374,7 @@ It does **not** mean:
 
 ---
 
-## 7. Explanation Engine
+## 8. Explanation Engine
 
 The explanation layer converts structured evidence into a user-understandable explanation.
 
@@ -328,7 +410,7 @@ unless accompanied by the underlying evidence.
 
 ---
 
-## 8. User Decision Layer
+## 9. User Decision Layer
 
 The final decision remains with the user.
 
@@ -349,7 +431,7 @@ The product is therefore an **intervention and decision-support layer**, not an 
 
 ---
 
-## 9. Auditability
+## 10. Auditability
 
 Every assessment should be reconstructable.
 
@@ -391,12 +473,17 @@ engineVersion
 
 ---
 
-## 10. Application Architecture
+## 11. Application Architecture
 
 For the hackathon prototype, the application can remain local-first.
 
 ```text
 Next.js Application
+│
+├── Simulated Host Apps
+│   ├── Messages App
+│   ├── Payment App
+│   └── Authorised to Lose Layer
 │
 ├── App Router / UI
 │
@@ -434,7 +521,7 @@ A separate Express service is unnecessary for the hackathon unless the implement
 
 ---
 
-## 11. Database Model
+## 12. Database Model
 
 A minimal prototype can use the following logical entities:
 
@@ -472,7 +559,7 @@ The database contains **synthetic data only**.
 
 ---
 
-## 12. API Boundaries
+## 13. API Boundaries
 
 Suggested endpoints:
 
@@ -538,7 +625,7 @@ or:
 
 ---
 
-## 13. Optional NLP / LLM Layer
+## 14. Optional NLP / LLM Layer
 
 Natural-language messages may contain useful information such as:
 
@@ -573,7 +660,7 @@ This keeps the core safety decision reproducible and demoable offline.
 
 ---
 
-## 14. Synthetic Scenario Generation
+## 15. Synthetic Scenario Generation
 
 The scenario taxonomy is grounded in documented UPI/digital-payment fraud-awareness patterns, while the actual transaction records and conversations used by the prototype are synthetic.
 
@@ -607,7 +694,7 @@ The evaluation should not only contain obvious scams.
 
 ---
 
-## 15. Evaluation Architecture
+## 16. Evaluation Architecture
 
 The production risk engine should be reused by the evaluation pipeline.
 
@@ -661,7 +748,7 @@ This provides a more meaningful test of generalisation.
 
 ---
 
-## 16. Demo Scenarios
+## 17. Demo Scenarios
 
 ### Scenario A — High-Risk Social Engineering
 
@@ -743,7 +830,7 @@ and that mitigating evidence matters.
 
 ---
 
-## 17. Security and Safety Principles
+## 18. Security and Safety Principles
 
 ### No real financial integration
 
@@ -769,7 +856,7 @@ Only synthetic data required for the demonstration and evaluation should be stor
 
 ---
 
-## 18. Failure Modes and Limitations
+## 19. Failure Modes and Limitations
 
 The prototype should explicitly acknowledge:
 
@@ -807,7 +894,7 @@ A production payment system may have access to signals unavailable to this proto
 
 ---
 
-## 19. Observability
+## 20. Observability
 
 For each assessment, capture:
 
@@ -832,7 +919,7 @@ This makes it possible to inspect:
 
 ---
 
-## 20. Future Production Architecture
+## 21. Future Production Architecture
 
 The hackathon architecture intentionally avoids unnecessary infrastructure.
 
@@ -888,7 +975,7 @@ These are **future architecture considerations**, not dependencies of the hackat
 
 ---
 
-## 21. Architectural Principles
+## 22. Architectural Principles
 
 1. **Context over isolated transaction features**
 2. **Risk signal over fraud verdict**
@@ -903,6 +990,77 @@ These are **future architecture considerations**, not dependencies of the hackat
 
 ---
 
-## 22. One-Line Architecture Summary
+## 23. One-Line Architecture Summary
 
 > **A contextual payment safety layer that aggregates transaction, message, behavioural, payee, and ledger evidence into an inspectable risk signal, explains the reasons before confirmation, records the user's decision, and evaluates the same deterministic engine against synthetic holdout scenarios.**
+
+
+---
+
+## 24. Hackathon Implementation Plan
+
+Build the simulated host-app experience first, then connect the intelligence behind it.
+
+### Phase 1 — Host-App Demo Shell
+
+```text
+Messages App
+    ↓
+Contextual Review Action
+    ↓
+Payment App
+    ↓
+Review Payment
+```
+
+The transition should feel like a safety layer rather than a separate data-entry tool.
+
+### Phase 2 — Context Engine
+
+Implement: `Message + Payment + History + Ledger + Payee + Behaviour` and produce a unified context object.
+
+### Phase 3 — Risk Engine
+
+Implement deterministic `Features → Signals → Score → Risk Band`.
+
+### Phase 4 — Explanation
+
+Render risk, top evidence, mitigating evidence, and an actionable verification step.
+
+### Phase 5 — User Decision
+
+Implement `GO BACK` and `CONTINUE ANYWAY`, and persist the outcome.
+
+### Phase 6 — Evaluation
+
+Run the same engine against Development, Holdout, and Adversarial datasets.
+
+### Phase 7 — Polish
+
+Only after the vertical slice works: improve animations, graph visualisation, analytics, optional NLP, and presentation mode.
+
+## 25. Demo Boundary: What We Claim vs What We Demonstrate
+
+### We demonstrate
+
+- simulated messaging application,
+- simulated payment application,
+- automatic transfer of message context inside the prototype,
+- contextual payment analysis,
+- explainable risk,
+- user intervention,
+- auditability,
+- synthetic-data evaluation.
+
+### We do not claim
+
+- real WhatsApp monitoring,
+- real SMS interception,
+- injection into Google Pay/PhonePe/Paytm,
+- real bank integration,
+- real UPI transaction execution,
+- production-grade fraud-detection accuracy.
+
+### Judge explanation
+
+> **"For the hackathon, we simulate the host applications so we can demonstrate the safety-layer experience without requiring access to third-party apps or real payment rails. The core risk engine, contextual reasoning, explanation, intervention, and evaluation are implemented as the actual prototype."**
