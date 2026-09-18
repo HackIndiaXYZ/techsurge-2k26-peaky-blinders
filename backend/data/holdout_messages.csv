@@ -1,0 +1,53 @@
+message,intent,is_fraud
+"Sir ur SBI a/c KYC is pending, pay 1999 to sbikyc.help@upi tonight else acc will freeze permanently",KYC_SCAM,True
+"Hello, Paytm KYC team. Your wallet limit reduced. Pay Rs 599 re-verification fee on paytmkyc@ybl and reply DONE",KYC_SCAM,True
+"Aapka HDFC account ka KYC 2 din me expire hoga. 999 rupees bhejiye hdfc.kycdesk@upi pe aur account chalu rakhiye",KYC_SCAM,True
+"Ur Aadhaar-PAN link failed. Complete by paying 1000 to pan.linkdesk@axl within today, else 10000 penalty",KYC_SCAM,True
+"Hi I sent 3000 rs to ur number by mistake plz return to my gpay rahul.k@okaxis its urgent my rent",REFUND_SCAM,True
+"Amazon refund department: Rs 2499 refund pending for your order. Pay 99 Rs GST to refunds.amz@ybl first to release",REFUND_SCAM,True
+"bhai galti se tumhare paytm pe 1500 chala gaya, plz abhi wapas kar do 9876501234@paytm pe, bahut urgent hai",REFUND_SCAM,True
+"You are the lucky winner of Rs 5 lakh in KBC Jio lucky draw! Claim by paying 2999 tax to kbc.jio.winner@upi",PRIZE_SCAM,True
+"Flipkart big billion scratch card: 20000 cashback won! Activate with Rs 199 on fk.cashback@ybl today",PRIZE_SCAM,True
+"Congrats ur mobile no. selected for 1 lakh gift. pay 499 courier charges to giftdesk@axl and share address",PRIZE_SCAM,True
+"This is DCP cyber crime. Ur Aadhaar used in money laundering. Transfer 25000 to govt.verify@sbi for verification or face arrest",IMPERSONATION,True
+"Hi its ur boss Mehta. In a client meeting cant talk. Buy gift cards worth 10000 and send me codes or transfer to vendor 9812345678@ybl now",IMPERSONATION,True
+"Mummy ka phone kharab ho gaya, ye mera naya number hai. 5000 turant is upi pe bhejo 9898989898@paytm, baad me batata hu",IMPERSONATION,True
+"TRAI notice: your number will be disconnected in 2 hrs due to illegal activity. Pay 2000 fine to trai.fine@upi",IMPERSONATION,True
+"Last warning. Pay 3500 to loan.recover@upi within 1 hour or we send agents to your home and call your contacts",URGENCY_PAYMENT,True
+"Ur courier parcel held at customs. Pay 1250 clearance to customs.desk@ybl in 30 min otherwise parcel destroyed",URGENCY_PAYMENT,True
+"Guaranteed 40% monthly returns in our crypto pool. Minimum 5000 to cryptogain@upi. 200 members already earning",INVESTMENT_SCAM,True
+"Stock tip group: pay 2000 joining fee on tradeking@ybl, get daily jackpot calls, paisa double in 15 days",INVESTMENT_SCAM,True
+"Work from home typing job, 30000 monthly. Pay 850 registration to hrdesk.jobs@upi and get login today",JOB_SCAM,True
+"Ur Amazon review task earnings 4500 ready. Recharge 1200 to task.release@axl to unlock withdrawal",JOB_SCAM,True
+"Buyer from OLX here, sending you a QR for payment of 12000, scan it and enter pin so money comes to you",QR_SCAM,True
+"Aapka electricity refund 1800 ready hai. Ye link kholo bit.ly/refund-eb aur UPI pin dalo",QR_SCAM,True
+"I am Major Vikram, posted at Jammu, selling bike 35000. Cant meet, pay 5000 advance to army.courier@upi, delivery by army truck",MARKETPLACE_PAYMENT,True
+"hi ur bike still available? can meet sunday at ur place, will pay 35000 on gpay after test ride",MARKETPLACE_PAYMENT,False
+"Paid 8000 for the fridge to your upi sunil.m@okhdfcbank, pls confirm and send pickup timing",MARKETPLACE_PAYMENT,False
+"bro 350 for the biryani last night, upi is amit22@oksbi",PAYMENT_REQUEST,False
+"Hey can you send 600 for the cab split? my id priya.s@okicici thanks",PAYMENT_REQUEST,False
+"Trek ka 1200 per head aaya hai, sabko bhejna hai karan@ybl pe by friday",PAYMENT_REQUEST,False
+"Beta 3000 bhej dena papa ke dawai ke liye mummy@okaxis, kal wapas kar dungi",FRIEND_FAMILY_PAYMENT,False
+"Need 10000 today for hospital admission of dad, sending my upi neha.r@oksbi, will return next week promise",FRIEND_FAMILY_PAYMENT,False
+"Sent you 2000 for the shopping, check ur phonepe",FRIEND_FAMILY_PAYMENT,False
+"Om Sweets: bill for the order is 1450. UPI omsweets@paytmqr or pay at pickup. Thanks",MERCHANT_PAYMENT,False
+"Your car service is done, total 4300. You can pay on our UPI starmotors@okbizaxis when you collect the car",MERCHANT_PAYMENT,False
+"Table for 6 confirmed at Cafe Nirvana. 500 deposit to cafenirvana@ybl adjustable in bill",MERCHANT_PAYMENT,False
+"BESCOM: Bill Rs 1340 for RR no 123456 due 25 Sep. Pay via BESCOM Mitra app or BBPS",BILL_PAYMENT,False
+"Airtel: your postpaid bill of Rs 799 is generated, due date 10 Oct. Pay in Airtel Thanks app",BILL_PAYMENT,False
+"Jio recharge reminder: plan expires tomorrow, recharge 299 from MyJio",BILL_PAYMENT,False
+"HDFC Bank: EMI of Rs 5600 will be debited on 5th. Keep sufficient balance. Never share OTP",BANK_REQUEST,False
+"ICICI: Rs 12000 credited to a/c XX4521 by NEFT. Bal Rs 34500",BANK_REQUEST,False
+"SBI: Credit card total due Rs 8900, min due Rs 890 by 18 Oct. Pay via YONO",BANK_REQUEST,False
+"meeting at 4 in room 12, bring the laptop",NON_PAYMENT,False
+"happy anniversary di! party kab de rahi ho",NON_PAYMENT,False
+"went to the bank for kyc today, line was 2 hours long, finally done",NON_PAYMENT,False
+"train 12 min late, reach by 9",NON_PAYMENT,False
+"My refund from IRCTC finally came after 20 days lol",NON_PAYMENT,False
+"OTP 482913 for login. Valid 10 min. Do not share",NON_PAYMENT,False
+"Save my new number 98450 12345",NON_PAYMENT,False
+"kal 7 baje ground pe aa jana match hai",NON_PAYMENT,False
+"congrats on the promotion man, drinks on you",NON_PAYMENT,False
+"Dear customer, your account will be suspended today. Update KYC by paying 4999 to secureverify@upi immediately.",KYC_SCAM,True
+"You won 25000 cashback. Pay 499 processing fee to rewards.claim@upi to receive it.",PRIZE_SCAM,True
+"Send 300 for lunch to rahul@oksbi",PAYMENT_REQUEST,False

@@ -38,7 +38,7 @@ export default function HomePage() {
               PausePay catches suspicious context around a transfer and gives you one clear reason to stop—before money leaves.
             </p>
             <div className="hero__actions">
-              <a className="button" href="/demo/messages">Go to Real App <ArrowRight size={17} /></a>
+              <a className="button" href="/app/messages">Go to Real App <ArrowRight size={17} /></a>
               <a className="button" href="#demo">Try a scam scenario <ArrowDownRight size={17} /></a>
               <HowItWorksWalkthrough />
             </div>

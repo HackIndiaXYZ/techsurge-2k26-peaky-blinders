@@ -5,8 +5,8 @@ export function ContextCanvas() {
     <figure className="context-canvas" aria-labelledby="context-canvas-title">
       <figcaption className="context-canvas__header">
         <div>
-          <p className="mono-label">Context review · synthetic</p>
-          <h2 id="context-canvas-title">Why this payment was interrupted</h2>
+          <p className="mono-label">PausePay warning · simulated</p>
+          <h2 id="context-canvas-title">Why this payment was paused</h2>
         </div>
         <span className="risk-chip"><AlertTriangle size={15} aria-hidden="true" /> High contextual risk</span>
       </figcaption>
@@ -15,8 +15,8 @@ export function ContextCanvas() {
         <article className="evidence-card evidence-card--message">
           <MessageSquareText size={18} aria-hidden="true" />
           <div>
-            <span className="evidence-card__label">Message · 10:26</span>
-            <p>“I sent ₹5,000 by mistake. Return it now to Rahul.”</p>
+            <span className="evidence-card__label">Message · 09:12 · unknown sender</span>
+            <p>“Your bank KYC expires today. Pay ₹4,999 immediately to secureverify@upi.”</p>
           </div>
         </article>
 
@@ -25,34 +25,34 @@ export function ContextCanvas() {
         <article className="evidence-card evidence-card--ledger">
           <Landmark size={18} aria-hidden="true" />
           <div>
-            <span className="evidence-card__label">Ledger check</span>
-            <p>No matching ₹5,000 incoming payment found.</p>
+            <span className="evidence-card__label">Message analysis</span>
+            <p>KYC-fee pattern · urgency · account-blocking threat.</p>
           </div>
         </article>
 
         <article className="evidence-card evidence-card--payee">
           <UserRoundPlus size={18} aria-hidden="true" />
           <div>
-            <span className="evidence-card__label">Recipient</span>
-            <p>New payee · different from the claimed sender.</p>
+            <span className="evidence-card__label">Payment attempt</span>
+            <p>₹4,999 to secureverify@upi · same identifier and amount.</p>
           </div>
         </article>
 
         <article className="evidence-card evidence-card--time">
           <Clock3 size={18} aria-hidden="true" />
           <div>
-            <span className="evidence-card__label">Timing</span>
-            <p>Payment started four minutes after the message.</p>
+            <span className="evidence-card__label">Risk store</span>
+            <p>Identifier already marked suspicious from that message.</p>
           </div>
         </article>
       </div>
 
       <div className="context-canvas__result">
         <div>
-          <span className="mono-label">Strongest contradiction</span>
-          <p>The claimed incoming payment cannot be verified.</p>
+          <span className="mono-label">Strongest reason</span>
+          <p>This UPI ID and ₹4,999 amount match an earlier suspicious KYC message.</p>
         </div>
-        <span className="score" aria-label="Risk score 82 out of 100">82<span>/100</span></span>
+        <span className="score" aria-label="Risk score 100 out of 100">100<span>/100</span></span>
       </div>
     </figure>
   );

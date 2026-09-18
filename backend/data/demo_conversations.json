@@ -1,0 +1,73 @@
+{
+  "_comment": "Simulated messenger threads for the prototype. Nothing here comes from a real messaging app. Inbound messages are sent to POST /api/analyze-message by the frontend when a thread is opened.",
+  "conversations": [
+    {
+      "id": "rahul",
+      "name": "Rahul Verma",
+      "handle": "rahul@oksbi",
+      "kind": "contact",
+      "messages": [
+        {"id": "rahul-1", "direction": "in", "text": "Lunch was great yesterday, that place near the office is solid.", "time": "12:41"},
+        {"id": "rahul-2", "direction": "out", "text": "Yeah! We should go again next week.", "time": "12:43"},
+        {"id": "rahul-3", "direction": "in", "text": "Send ₹300 for lunch to rahul@oksbi", "time": "12:44"}
+      ]
+    },
+    {
+      "id": "kyc-alert",
+      "name": "+91 90000 00001",
+      "handle": "+919000000001",
+      "kind": "unknown",
+      "messages": [
+        {"id": "kyc-1", "direction": "in", "text": "Your bank KYC expires today. Pay ₹4,999 immediately to secureverify@upi or your account will be blocked.", "time": "09:12"}
+      ]
+    },
+    {
+      "id": "rewards",
+      "name": "Rewards Desk",
+      "handle": "+919000000002",
+      "kind": "unknown",
+      "messages": [
+        {"id": "rewards-1", "direction": "in", "text": "Congratulations! You won ₹25,000 cashback. Pay ₹499 processing fee to rewards.claim@upi to receive it today.", "time": "10:05"}
+      ]
+    },
+    {
+      "id": "arjun",
+      "name": "Arjun Mehta",
+      "handle": "arjun@oksbi",
+      "kind": "contact",
+      "messages": [
+        {"id": "arjun-1", "direction": "out", "text": "Reached home, thanks for the ride!", "time": "23:10"},
+        {"id": "arjun-2", "direction": "in", "text": "Anytime. Bro send ₹250 for yesterday's dinner. UPI: arjun@oksbi", "time": "08:30"}
+      ]
+    },
+    {
+      "id": "refund",
+      "name": "+91 98123 40001",
+      "handle": "+919812340001",
+      "kind": "unknown",
+      "messages": [
+        {"id": "refund-1", "direction": "in", "text": "Hi, I accidentally sent ₹5,000 to your number by mistake. Please return it immediately to refund.desk@ybl, it was my rent money.", "time": "11:20"}
+      ]
+    },
+    {
+      "id": "hospital",
+      "name": "Lakeview Hospital",
+      "handle": "lakeviewhospital@icici",
+      "kind": "business",
+      "messages": [
+        {"id": "hospital-1", "direction": "in", "text": "Lakeview Hospital: admission deposit of ₹18,000 for patient Suresh K is due today so the admission can be completed. Pay at the billing counter or to UPI lakeviewhospital@icici. Receipt will be issued.", "time": "07:55"}
+      ]
+    },
+    {
+      "id": "mom",
+      "name": "Mom",
+      "handle": "+919845012345",
+      "kind": "contact",
+      "messages": [
+        {"id": "mom-1", "direction": "in", "text": "Went to the SBI branch for KYC today, took 40 minutes. Finally done.", "time": "16:02"},
+        {"id": "mom-2", "direction": "out", "text": "Good! Did they ask for anything else?", "time": "16:05"},
+        {"id": "mom-3", "direction": "in", "text": "No. Dinner at 8, don't be late. Room 12 at the hall is booked for Sunday.", "time": "16:06"}
+      ]
+    }
+  ]
+}

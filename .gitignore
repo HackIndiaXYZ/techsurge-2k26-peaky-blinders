@@ -144,3 +144,6 @@ vite.config.ts.timestamp-*
 
 # Local nested repository
 /techsurge-2k26-peaky-blinders/
+
+# QA browser profile cache
+.qa-edge-style/

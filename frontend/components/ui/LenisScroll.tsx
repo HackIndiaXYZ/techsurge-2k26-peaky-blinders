@@ -2,10 +2,14 @@
 
 import Lenis from "lenis";
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 export function LenisScroll({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (pathname && pathname.startsWith("/app")) return;
 
     const lenis = new Lenis({
       duration: 1.05,

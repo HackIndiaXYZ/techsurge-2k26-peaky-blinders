@@ -1,0 +1,445 @@
+{
+  "model_version": "tfidf-logreg-1.0",
+  "trained_at": "2026-09-18T13:54:38.791660+00:00",
+  "dataset": {
+    "path": "payment_messages.csv",
+    "rows": 4000,
+    "train_rows": 3200,
+    "test_rows": 800,
+    "fraud_share": 0.53125
+  },
+  "intent": {
+    "accuracy": 1.0,
+    "precision_macro": 1.0,
+    "recall_macro": 1.0,
+    "f1_macro": 1.0,
+    "f1_weighted": 1.0,
+    "labels": [
+      "BANK_REQUEST",
+      "BILL_PAYMENT",
+      "FRIEND_FAMILY_PAYMENT",
+      "IMPERSONATION",
+      "INVESTMENT_SCAM",
+      "JOB_SCAM",
+      "KYC_SCAM",
+      "MARKETPLACE_PAYMENT",
+      "MERCHANT_PAYMENT",
+      "NON_PAYMENT",
+      "PAYMENT_REQUEST",
+      "PRIZE_SCAM",
+      "QR_SCAM",
+      "REFUND_SCAM",
+      "URGENCY_PAYMENT"
+    ],
+    "confusion_matrix": [
+      [
+        46,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        54,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        56,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        60,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        45,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        48,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        58,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        52,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        56,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        62,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        66,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        53,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        40,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        61,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        43
+      ]
+    ],
+    "per_class": {
+      "BANK_REQUEST": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 46.0
+      },
+      "BILL_PAYMENT": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 54.0
+      },
+      "FRIEND_FAMILY_PAYMENT": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 56.0
+      },
+      "IMPERSONATION": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 60.0
+      },
+      "INVESTMENT_SCAM": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 45.0
+      },
+      "JOB_SCAM": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 48.0
+      },
+      "KYC_SCAM": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 58.0
+      },
+      "MARKETPLACE_PAYMENT": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 52.0
+      },
+      "MERCHANT_PAYMENT": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 56.0
+      },
+      "NON_PAYMENT": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 62.0
+      },
+      "PAYMENT_REQUEST": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 66.0
+      },
+      "PRIZE_SCAM": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 53.0
+      },
+      "QR_SCAM": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 40.0
+      },
+      "REFUND_SCAM": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 61.0
+      },
+      "URGENCY_PAYMENT": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 43.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 800.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 800.0
+      }
+    }
+  },
+  "fraud": {
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "roc_auc": 1.0,
+    "confusion_matrix": [
+      [
+        373,
+        0
+      ],
+      [
+        0,
+        427
+      ]
+    ],
+    "false_positive_rate": 0.0,
+    "false_negative_rate": 0.0
+  },
+  "holdout": {
+    "rows": 52,
+    "intent_accuracy": 0.9807692307692307,
+    "intent_f1_macro": 0.980952380952381,
+    "payment_related_accuracy": 1.0,
+    "fraud_accuracy": 0.9807692307692307,
+    "fraud_precision": 1.0,
+    "fraud_recall": 0.96,
+    "fraud_f1": 0.9795918367346939,
+    "fraud_confusion_matrix": [
+      [
+        27,
+        0
+      ],
+      [
+        1,
+        24
+      ]
+    ],
+    "misclassified": [
+      {
+        "message": "Mummy ka phone kharab ho gaya, ye mera naya number hai. 5000 turant is upi pe bhejo 9898989898@paytm, baad me batata hu",
+        "true": "IMPERSONATION",
+        "predicted": "FRIEND_FAMILY_PAYMENT"
+      }
+    ]
+  },
+  "avg_inference_latency_ms": 2.453374999895459,
+  "intent_train_seconds": 0.9679009999963455
+}

@@ -1,0 +1,11 @@
+{
+  "_comment": "Synthetic seed list of identifiers with confirmed fraud reports. These are fictional and exist only so the prototype can demonstrate the 'previously reported' path. Loaded into identifier_risks at startup with status CONFIRMED_FRAUD.",
+  "identifiers": [
+    {"identifier": "kycupdate.sbi@upi", "type": "UPI", "reports": 5, "note": "Reported in multiple KYC-fee messages"},
+    {"identifier": "refund.desk@ybl", "type": "UPI", "reports": 4, "note": "Fake refund / reversal charge requests"},
+    {"identifier": "lottery.claim@paytm", "type": "UPI", "reports": 6, "note": "Prize-claim processing fee requests"},
+    {"identifier": "army.courier@upi", "type": "UPI", "reports": 3, "note": "Marketplace advance-payment scam"},
+    {"identifier": "+919000000001", "type": "PHONE", "reports": 4, "note": "Impersonated bank helpline"},
+    {"identifier": "+919000000002", "type": "PHONE", "reports": 3, "note": "Fake customer-care callback number"}
+  ]
+}
