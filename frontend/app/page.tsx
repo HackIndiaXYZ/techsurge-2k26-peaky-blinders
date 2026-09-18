@@ -1,4 +1,4 @@
-import { ArrowDownRight, ArrowRight, Eye, LockKeyhole, ScanSearch, ShieldCheck } from "lucide-react";
+import { ArrowDownRight, ArrowRight, Building2, Eye, LockKeyhole, ScanSearch, ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import { UPINetwork } from "@/components/landing/UPINetwork";
 import { ScenarioLab } from "@/components/landing/ScenarioLab";
@@ -24,6 +24,11 @@ export default function HomePage() {
           <ThemeLogo />
         </a>
         <div className="header-actions">
+          <a className="nav-item-companies" href="/companies" aria-label="Services for Companies">
+            <Building2 size={15} />
+            <span>Services for Companies</span>
+            <span className="badge-enterprise">API</span>
+          </a>
           <ThemeToggle />
           <a className="button button--compact" href="#demo">Try a scenario <ArrowRight size={16} /></a>
         </div>
@@ -49,6 +54,9 @@ export default function HomePage() {
 
         <section className="trust-strip" aria-label="Supported payment apps">
           <span>Google Pay</span><span>PhonePe</span><span>Paytm</span><span>BHIM</span><span>Amazon Pay</span><span>WhatsApp</span><strong>+ any UPI app</strong>
+          <a href="/companies" className="text-xs font-semibold hover:underline inline-flex items-center gap-1 ml-3" style={{ color: "var(--color-accent)" }}>
+            For Payment Companies &rarr;
+          </a>
         </section>
 
         <section className="how section-shell" id="how-it-works" aria-labelledby="how-title">

@@ -110,7 +110,7 @@ const mockBottomItems: NavItemData[] = [
 
 function WorkspaceSwitcher({ selected, onSelect }: { selected?: string, onSelect?: (ws: string) => void }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [internalSelected, setInternalSelected] = useState('Acme Corp');
+  const [internalSelected, setInternalSelected] = useState('Google Pay');
   
   const current = selected || internalSelected;
   const handleSelect = onSelect || setInternalSelected;
@@ -137,7 +137,7 @@ function WorkspaceSwitcher({ selected, onSelect }: { selected?: string, onSelect
         <>
           <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
           <div className="absolute top-[52px] left-0 w-full bg-card border border-border/50 rounded-lg shadow-xl z-50 py-1 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100">
-            {['Acme Corp', 'Personal Workspace', 'Client Sandbox'].map(ws => (
+            {['Google Pay', 'Personal Workspace', 'Client Sandbox'].map(ws => (
               <div 
                 key={ws}
                 onClick={() => { handleSelect(ws); setIsOpen(false); }}
@@ -319,7 +319,7 @@ const flatMockData = flattenItems(allItems);
 export default function SidebarNavPreview() {
   const [isOpen, setIsOpen] = useState(true);
   const [activeId, setActiveId] = useState('home');
-  const [activeWorkspace, setActiveWorkspace] = useState('Acme Corp');
+  const [activeWorkspace, setActiveWorkspace] = useState('Google Pay');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const activeItem = flatMockData.find(i => i.id === activeId);
@@ -542,7 +542,7 @@ const mockBottomItems: NavItemData[] = [
 
 function WorkspaceSwitcher({ selected, onSelect }: { selected?: string, onSelect?: (ws: string) => void }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [internalSelected, setInternalSelected] = useState('Acme Corp');
+  const [internalSelected, setInternalSelected] = useState('Google Pay');
   
   const current = selected || internalSelected;
   const handleSelect = onSelect || setInternalSelected;
@@ -569,7 +569,7 @@ function WorkspaceSwitcher({ selected, onSelect }: { selected?: string, onSelect
         <>
           <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
           <div className="absolute top-[52px] left-0 w-full bg-card border border-border/50 rounded-lg shadow-xl z-50 py-1 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100">
-            {['Acme Corp', 'Personal Workspace', 'Client Sandbox'].map(ws => (
+            {['Google Pay', 'Personal Workspace', 'Client Sandbox'].map(ws => (
               <div 
                 key={ws}
                 onClick={() => { handleSelect(ws); setIsOpen(false); }}
@@ -751,7 +751,7 @@ const flatMockData = flattenItems(allItems);
 export default function SidebarNavPreview() {
   const [isOpen, setIsOpen] = useState(true);
   const [activeId, setActiveId] = useState('home');
-  const [activeWorkspace, setActiveWorkspace] = useState('Acme Corp');
+  const [activeWorkspace, setActiveWorkspace] = useState('Google Pay');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const activeItem = flatMockData.find(i => i.id === activeId);

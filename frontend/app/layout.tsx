@@ -1,6 +1,27 @@
 import type { Metadata, Viewport } from "next";
+import { DM_Serif_Display, Manrope, IBM_Plex_Mono } from "next/font/google";
 import { Providers } from "./providers";
 import "../styles/globals.css";
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-manrope",
+  display: "swap",
+});
+
+const dmSerif = DM_Serif_Display({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-dm-serif",
+  display: "swap",
+});
+
+const ibmPlexMono = IBM_Plex_Mono({
+  weight: ["400", "500", "600"],
+  subsets: ["latin"],
+  variable: "--font-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "PausePay | Pause before you pay",
@@ -21,16 +42,12 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Geist:wght@400..700&display=swap"
-        />
-      </head>
-      <body>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${manrope.variable} ${dmSerif.variable} ${ibmPlexMono.variable}`}
+    >
+      <body className={`${manrope.variable} ${dmSerif.variable} ${ibmPlexMono.variable}`}>
         <Providers>{children}</Providers>
       </body>
     </html>

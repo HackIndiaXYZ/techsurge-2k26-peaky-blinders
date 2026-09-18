@@ -4,9 +4,9 @@
 :root {
   color-scheme: light;
 
-  --font-display: "Instrument Serif", ui-serif, Georgia, serif;
-  --font-body: "Geist", system-ui, -apple-system, sans-serif;
-  --font-mono: "Geist", system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-dm-serif), Georgia, serif;
+  --font-body: var(--font-manrope), "Segoe UI", sans-serif;
+  --font-mono: var(--font-mono), "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
 
   --color-paper: oklch(97.4% 0.012 82);
   --color-paper-raised: oklch(99% 0.006 82);
