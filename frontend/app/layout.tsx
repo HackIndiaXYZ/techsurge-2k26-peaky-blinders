@@ -3,7 +3,7 @@ import { Providers } from "./providers";
 import "../styles/globals.css";
 
 export const metadata: Metadata = {
-  title: "Authorised to Lose | Contextual payment safety",
+  title: "PausePay | Contextual payment safety",
   description:
     "An explainable pre-payment safety layer that examines the context around authorised payments before money leaves.",
 };
