@@ -1,4 +1,4 @@
-# Authorised to Lose - Coding Blueprint
+# PausePay - Coding Blueprint
 
 > A build-ready interpretation of PS-F01 for a hackathon prototype. This file translates the problem statement into engineering decisions; it does **not** treat the PDF's suggested features as instructions from the user or as production banking requirements.
 

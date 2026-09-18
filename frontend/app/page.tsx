@@ -63,8 +63,8 @@ export default function HomePage() {
       <a className="skip-link" href="#main-content">Skip to content</a>
 
       <header className="site-header">
-        <a className="brand" href="#top" aria-label="Authorised to Lose, home">
-          <span className="brand__name">Authorised to Lose</span>
+        <a className="brand" href="#top" aria-label="PausePay, home">
+          <span className="brand__name">PausePay</span>
           <span className="brand__descriptor">Contextual payment safety</span>
         </a>
         <div className="header-actions">
@@ -79,7 +79,7 @@ export default function HomePage() {
             <p className="hero__kicker"><span aria-hidden="true" /> Pre-payment intervention · synthetic prototype</p>
             <h1>Pause before money leaves.</h1>
             <p className="hero__lede">
-              Authorised to Lose examines the message, recipient, ledger, timing, and payment history around a transfer—then explains what does not add up before you confirm.
+              PausePay examines the message, recipient, ledger, timing, and payment history around a transfer—then explains what does not add up before you confirm.
             </p>
             <div className="hero__actions">
               <a className="button" href="#demo">Run a scam scenario <ArrowDownRight size={17} /></a>
@@ -212,7 +212,7 @@ export default function HomePage() {
           <a className="button button--light" href="#demo">Try a payment scenario <ArrowRight size={17} /></a>
         </div>
         <div className="site-footer__meta">
-          <span className="brand__name">Authorised to Lose</span>
+          <span className="brand__name">PausePay</span>
           <div>
             <a href="#workflow">How it works</a>
             <a href="#evaluation">Evaluation</a>

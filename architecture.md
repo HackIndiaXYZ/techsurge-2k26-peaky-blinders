@@ -1,8 +1,8 @@
-# Architecture — Authorised to Lose
+# Architecture — PausePay
 
 ## 1. Overview
 
-**Authorised to Lose** is a pre-payment safety layer for UPI-style authorised push payments.
+**PausePay** is a pre-payment safety layer for UPI-style authorised push payments.
 
 The system does not attempt to prove that a transaction is fraudulent. Instead, it evaluates the **context surrounding a payment**, produces a structured risk signal, explains the evidence in plain language, and gives the user the final decision.
 
@@ -41,7 +41,7 @@ Each signal is inspectable and contributes to the final risk assessment.
 ┌───────────────────────────────────────────────────────────────┐
 │                 Simulated Host Applications                  │
 │                                                               │
-│  Messages App → Payment App → Review with Authorised to Lose  │
+│  Messages App → Payment App → Review with PausePay  │
 └───────────────────────────────┬───────────────────────────────┘
                                 │
                                 ▼
@@ -119,7 +119,7 @@ Each signal is inspectable and contributes to the final risk assessment.
 
 ### Purpose
 
-The hackathon prototype demonstrates Authorised to Lose as a **safety layer around a payment decision** without pretending to have unrestricted access to real third-party applications.
+The hackathon prototype demonstrates PausePay as a **safety layer around a payment decision** without pretending to have unrestricted access to real third-party applications.
 
 The prototype contains simulated host applications:
 
@@ -138,7 +138,7 @@ The prototype contains simulated host applications:
                │
                ▼
 ┌──────────────────────────────┐
-│   Authorised to Lose Layer   │
+│   PausePay Layer   │
 │                              │
 │ Message context attached     │
 │ automatically in the demo    │
@@ -173,7 +173,7 @@ Copy → Paste → Analyse
 
 ### What is simulated?
 
-The prototype simulates the integration boundary between a messaging application, a payment application, and the Authorised to Lose safety layer.
+The prototype simulates the integration boundary between a messaging application, a payment application, and the PausePay safety layer.
 
 The host applications are **not real third-party applications**. The prototype does not claim to monitor or inject UI into WhatsApp, SMS, Google Pay, PhonePe, Paytm, or another real application.
 
@@ -189,12 +189,12 @@ This hackathon implementation deliberately keeps that boundary simulated so the 
 
 ### Step 1 — Host-App Context
 
-The user sees a message inside the **simulated Messages app** and selects the contextual review action. The demo passes the message context directly to Authorised to Lose — there is no copy-paste step.
+The user sees a message inside the **simulated Messages app** and selects the contextual review action. The demo passes the message context directly to PausePay — there is no copy-paste step.
 
 ```text
 Simulated Messages
        ↓
-Review with Authorised to Lose
+Review with PausePay
        ↓
 Context attached
 ```
@@ -483,7 +483,7 @@ Next.js Application
 ├── Simulated Host Apps
 │   ├── Messages App
 │   ├── Payment App
-│   └── Authorised to Lose Layer
+│   └── PausePay Layer
 │
 ├── App Router / UI
 │
