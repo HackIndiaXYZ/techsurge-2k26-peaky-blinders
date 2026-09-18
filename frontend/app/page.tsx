@@ -1,9 +1,12 @@
 import { ArrowDownRight, ArrowRight, Eye, LockKeyhole, ScanSearch, ShieldCheck } from "lucide-react";
+import Image from "next/image";
 import { UPINetwork } from "@/components/landing/UPINetwork";
 import { ScenarioLab } from "@/components/landing/ScenarioLab";
 import { ThemeLogo } from "@/components/ui/ThemeLogo";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { ImageAutoSlider } from "@/components/ui/image-auto-slider";
+import { HowItWorksWalkthrough } from "@/components/landing/HowItWorksWalkthrough";
+import downloadBadge from "@/assets/download/single.png";
 
 const steps = [
   { number: "01", icon: Eye, title: "Reads the context", body: "Message, amount, recipient and recent payment history." },
@@ -37,7 +40,7 @@ export default function HomePage() {
             <div className="hero__actions">
               <a className="button" href="/demo/messages">Go to Real App <ArrowRight size={17} /></a>
               <a className="button" href="#demo">Try a scam scenario <ArrowDownRight size={17} /></a>
-              <a className="text-link" href="#how-it-works">See how it works <ArrowRight size={16} /></a>
+              <HowItWorksWalkthrough />
             </div>
             <p className="hero__disclaimer"><LockKeyhole size={14} aria-hidden="true" /> Demo only. No bank account, UPI PIN or OTP is connected.</p>
           </div>
@@ -91,10 +94,24 @@ export default function HomePage() {
         </section>
       </main>
 
-      <footer className="site-footer site-footer--simple">
-        <span className="brand__name">PausePay</span>
-        <p>Contextual payment safety for UPI.</p>
-        <span>Synthetic prototype · 2026</span>
+      <footer className="site-footer site-footer--simple" id="download">
+        <div className="footer-download">
+          <div>
+            <p className="mono-label">Pause before you pay</p>
+            <h2>Take PausePay with you.</h2>
+            <p>Get an extra moment of clarity before paying someone new.</p>
+          </div>
+          <div className="footer-download__badges" aria-label="Download PausePay">
+            <a href="#download" aria-label="Download PausePay on Google Play or the App Store">
+              <Image src={downloadBadge} alt="Get PausePay on Google Play or download it on the App Store" />
+            </a>
+          </div>
+        </div>
+        <div className="site-footer__bottom">
+          <span className="brand__name">PausePay</span>
+          <p>Contextual payment safety for UPI.</p>
+          <span>Synthetic prototype · 2026</span>
+        </div>
       </footer>
     </>
   );
