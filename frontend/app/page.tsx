@@ -1,4 +1,4 @@
-import { ArrowDownRight, ArrowRight, Building2, Eye, LockKeyhole, ScanSearch, ShieldCheck } from "lucide-react";
+import { ArrowDownRight, ArrowRight, Building2, Eye, LockKeyhole, ScanSearch, ShieldCheck, Smartphone } from "lucide-react";
 import Image from "next/image";
 import { UPINetwork } from "@/components/landing/UPINetwork";
 import { ScenarioLab } from "@/components/landing/ScenarioLab";
@@ -43,7 +43,9 @@ export default function HomePage() {
               PausePay catches suspicious context around a transfer and gives you one clear reason to stop—before money leaves.
             </p>
             <div className="hero__actions">
-              <a className="button" href="/app/inbox">Go to Real App <ArrowRight size={17} /></a>
+              {/* Opens the simulated phone at its home screen, so the three apps
+                  are the first thing seen rather than one app mid-flow. */}
+              <a className="button" href="/app"><Smartphone size={17} aria-hidden="true" /> Mobile view</a>
               <a className="button" href="#demo">Try a scam scenario <ArrowDownRight size={17} /></a>
               <HowItWorksWalkthrough />
             </div>
