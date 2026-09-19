@@ -111,5 +111,20 @@ class PaymentVerification(Base):
     acted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
+    timeline: Mapped[list] = mapped_column(JSON, default=list)
 
     matched_message_analysis: Mapped["MessageAnalysis | None"] = relationship(foreign_keys=[matched_message_analysis_id])
+
+
+class LedgerEntry(Base):
+    """Synthetic user bank account transaction entry."""
+
+    __tablename__ = "ledger_entries"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    entry_type: Mapped[str] = mapped_column(String(16))  # CREDIT | DEBIT
+    amount: Mapped[float] = mapped_column(Float)
+    counterparty: Mapped[str | None] = mapped_column(String(128))
+    description: Mapped[str | None] = mapped_column(String(256))
+    reference_id: Mapped[str | None] = mapped_column(String(64), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)

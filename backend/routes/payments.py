@@ -14,7 +14,9 @@ router = APIRouter(tags=["payments"])
 @router.post("/verify-payee", response_model=VerifyPayeeResponse)
 def verify_payee(payload: VerifyPayeeRequest, db: Session = Depends(get_db)) -> VerifyPayeeResponse:
     try:
-        verification, record, matched, latency_ms = analysis_service.verify_payee(db, payload.identifier, payload.amount, payload.payee_name)
+        verification, record, matched, latency_ms = analysis_service.verify_payee(
+            db, payload.identifier, payload.amount, payload.payee_name, context=payload.context
+        )
     except InvalidIdentifier as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
@@ -41,6 +43,13 @@ def verify_payee(payload: VerifyPayeeRequest, db: Session = Depends(get_db)) -> 
         identifier_risk=identifier_risk,
         latency_ms=round(latency_ms, 2),
         engine_version=settings.engine_version,
+        mitigators=getattr(verification, "mitigators", []),
+        families=getattr(verification, "families", []),
+        override=getattr(verification, "override", False),
+        override_reason=getattr(verification, "override_reason", None),
+        ledger_check=getattr(verification, "ledger_check", None),
+        context_graph=getattr(verification, "context_graph", None),
+        timeline=getattr(verification, "timeline", None),
     )
 
 

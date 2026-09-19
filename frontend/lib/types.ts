@@ -11,6 +11,8 @@ export interface Signal {
   code: string;
   label: string;
   weight: number;
+  family?: string;
+  evidence?: string;
 }
 
 export interface Entities {
@@ -111,6 +113,48 @@ export interface MatchedMessage {
   created_at: string;
 }
 
+export interface LedgerEntry {
+  id: number;
+  entry_type: "CREDIT" | "DEBIT";
+  amount: number;
+  counterparty: string | null;
+  description: string | null;
+  reference_id: string | null;
+  created_at: string;
+}
+
+export interface LedgerCheckResult {
+  claim_amount: number;
+  matched: boolean;
+  matching_entry: LedgerEntry | null;
+  unverified_incoming: boolean;
+  summary: string;
+}
+
+export interface GraphNode {
+  id: string;
+  type: string;
+  label: string;
+  properties: Record<string, any>;
+}
+
+export interface GraphEdge {
+  source: string;
+  target: string;
+  label: string;
+  properties: Record<string, any>;
+}
+
+export interface ContextGraph {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+}
+
+export interface TimelineEvent {
+  step: string;
+  timestamp: string;
+}
+
 export interface VerifyPayeeResponse {
   verification_id: number;
   identifier: string;
@@ -129,6 +173,13 @@ export interface VerifyPayeeResponse {
   identifier_risk: IdentifierRisk;
   latency_ms: number;
   engine_version: string;
+  mitigators?: Signal[];
+  families?: string[];
+  override?: boolean;
+  override_reason?: string | null;
+  ledger_check?: LedgerCheckResult | null;
+  context_graph?: ContextGraph | null;
+  timeline?: TimelineEvent[];
 }
 
 export interface PaymentVerification {
@@ -147,6 +198,7 @@ export interface PaymentVerification {
   user_action: UserAction | null;
   acted_at: string | null;
   created_at: string;
+  timeline?: TimelineEvent[];
 }
 
 export interface FraudReport {

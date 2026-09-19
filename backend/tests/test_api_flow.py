@@ -85,9 +85,13 @@ def test_normal_message_does_not_create_high_risk_identifier(client):
 def test_unknown_payee_is_not_called_fraud(client):
     risk = client.get("/api/risk/meera.iyer@okhdfcbank").json()
     assert risk["risk_band"] == "UNKNOWN" and risk["report_count"] == 0
-    verify = client.post("/api/verify-payee", json={"identifier": "meera.iyer@okhdfcbank", "amount": 1200}).json()
+    verify = client.post("/api/verify-payee", json={
+        "identifier": "meera.iyer@okhdfcbank", 
+        "amount": 1200,
+        "context": {"payment": {"payment_hour": 14}}
+    }).json()
     assert verify["decision"] == "ALLOW"
-    assert verify["risk_score"] == 0
+    assert verify["risk_score"] == 8
     assert verify["identifier_risk"]["risk_band"] == "UNKNOWN"
     assert "no evidence" in verify["summary"].lower()
 

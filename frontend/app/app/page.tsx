@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
-export default function AppIndex() {
+export default function AppRedirect() {
   redirect("/app/messages");
 }

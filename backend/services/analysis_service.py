@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 
 from config import settings
 from models import FraudReport, IdentifierRisk, MessageAnalysis, PaymentVerification
-from services import fraud_lookup
+from services import behavior_service, fraud_lookup, ledger_service
 from services.correlation_engine import correlate_payment
 from services.entity_extractor import classify_identifier, extract_entities
 from services.explanation_engine import explain_message, explain_payment
@@ -50,7 +50,31 @@ def analyze_message(db: Session, text: str, source: str = "MANUAL_CHECK", source
     identifiers = [i for i in (entities.upi_id, entities.phone_number) if i]
     known_before = _known_records(db, identifiers)
 
-    assessment = assess_message(text, prediction, entities, known_before)
+    context = None
+    if prediction.intent == "REFUND_SCAM" or "refund" in entities.keyword_hits:
+        ledger_res = ledger_service.check_incoming_credit(db, entities.amount, sender_label)
+        context = {
+            "ledger": {
+                "matching_credit_found": ledger_res.matched,
+                "matching_credit_amount": ledger_res.matching_entry.amount if ledger_res.matching_entry else 0,
+                "matching_credit_sender": ledger_res.matching_entry.counterparty if ledger_res.matching_entry else None,
+            },
+            "message": {
+                "claims_incoming_transfer": True,
+                "mistaken_transfer": True,
+                "claimed_amount": entities.amount,
+                "claimed_sender": sender_label,
+                "claimed_sender_identifier": sender_label,
+                "claimed_payee": entities.upi_id,
+            },
+            "payment": {
+                "payee": entities.upi_id,
+                "payee_identifier": entities.upi_id,
+                "amount": entities.amount,
+            },
+        }
+
+    assessment = assess_message(text, prediction, entities, known_before, context=context)
     summary, reasons = explain_message(assessment, prediction.intent, prediction.confidence, entities)
 
     analysis = MessageAnalysis(
@@ -83,7 +107,7 @@ def analyze_message(db: Session, text: str, source: str = "MANUAL_CHECK", source
     return analysis, records, entities.to_dict(), (time.perf_counter() - started) * 1000, False
 
 
-def verify_payee(db: Session, raw_identifier: str, amount: float, payee_name: str | None = None) -> tuple[PaymentVerification, IdentifierRisk | None, dict | None, float]:
+def verify_payee(db: Session, raw_identifier: str, amount: float, payee_name: str | None = None, context: dict | None = None) -> tuple[PaymentVerification, IdentifierRisk | None, dict | None, float]:
     """Check a payee before payment. Returns (verification, identifier record, matched message summary, latency_ms)."""
     started = time.perf_counter()
     identifier, identifier_type = classify_identifier(raw_identifier)
@@ -92,8 +116,67 @@ def verify_payee(db: Session, raw_identifier: str, amount: float, payee_name: st
 
     record = db.scalar(select(IdentifierRisk).where(IdentifierRisk.identifier == identifier))
     correlation = correlate_payment(db, identifier, amount)
-    assessment = assess_payment(amount, record, correlation.message, correlation.amount_match, correlation.hours_since)
+
+    ctx = dict(context) if context else {}
+    
+    # Inject behavioral baseline context
+    b_ctx = behavior_service.evaluate_behavioral_context(db, identifier, amount, explicit_context=ctx)
+    ctx.update(b_ctx)
+
+    ledger_result = None
+
+    # Automatically query synthetic ledger if evaluating a refund/accidental transfer scenario
+    if "ledger" not in ctx:
+        is_refund = False
+        check_amt = amount
+        claimed_sender = None
+
+        if correlation.message is not None:
+            m = correlation.message
+            if m.intent == "REFUND_SCAM" or (m.keywords and "refund" in m.keywords):
+                is_refund = True
+                check_amt = m.amount or amount
+                claimed_sender = m.sender_label
+
+        if is_refund:
+            ledger_result = ledger_service.check_incoming_credit(db, check_amt, claimed_sender)
+            ctx["ledger"] = {
+                "matching_credit_found": ledger_result.matched,
+                "matching_credit_amount": ledger_result.matching_entry.amount if ledger_result.matching_entry else 0,
+                "matching_credit_sender": ledger_result.matching_entry.counterparty if ledger_result.matching_entry else None,
+            }
+            if "message" not in ctx:
+                ctx["message"] = {
+                    "claims_incoming_transfer": True,
+                    "mistaken_transfer": True,
+                    "claimed_amount": check_amt,
+                    "claimed_sender": claimed_sender,
+                    "claimed_sender_identifier": claimed_sender,
+                }
+            if "payment" not in ctx:
+                ctx["payment"] = {
+                    "payee": identifier,
+                    "payee_identifier": identifier,
+                    "amount": amount,
+                }
+
+    assessment = assess_payment(amount, record, correlation.message, correlation.amount_match, correlation.hours_since, context=ctx if ctx else None)
     title, summary, reasons = explain_payment(assessment, identifier_type, amount, correlation.message, correlation.amount_match, record)
+
+    now = datetime.now(timezone.utc)
+    from datetime import timedelta
+    timeline = []
+    if correlation.message:
+        m_time = correlation.message.created_at
+        timeline.append({"step": "MESSAGE_RECEIVED", "timestamp": m_time.isoformat()})
+        timeline.append({"step": "MESSAGE_ANALYZED", "timestamp": (m_time + timedelta(seconds=1)).isoformat()})
+    
+    timeline.append({"step": "PAYMENT_INITIATED", "timestamp": (now - timedelta(seconds=2)).isoformat()})
+    timeline.append({"step": "CONTEXT_AGGREGATED", "timestamp": (now - timedelta(seconds=1)).isoformat()})
+    timeline.append({"step": "RISK_SIGNALS_EVALUATED", "timestamp": now.isoformat()})
+    timeline.append({"step": "RISK_ASSESSMENT_CREATED", "timestamp": now.isoformat()})
+    if decision_for(assessment.band) != "ALLOW":
+        timeline.append({"step": "WARNING_DISPLAYED", "timestamp": (now + timedelta(seconds=1)).isoformat()})
 
     verification = PaymentVerification(
         identifier=identifier,
@@ -108,6 +191,7 @@ def verify_payee(db: Session, raw_identifier: str, amount: float, payee_name: st
         signals=[s.to_dict() for s in assessment.signals],
         reasons=reasons,
         summary=summary,
+        timeline=timeline,
     )
     db.add(verification)
     db.commit()
@@ -130,6 +214,66 @@ def verify_payee(db: Session, raw_identifier: str, amount: float, payee_name: st
             "created_at": m.created_at,
         }
     verification.title = title  # transient attribute for the response builder
+    verification.mitigators = [m.to_dict() for m in assessment.mitigators]
+    verification.families = assessment.families
+    verification.override = assessment.override
+    verification.override_reason = assessment.override_reason
+    if ledger_result:
+        verification.ledger_check = ledger_result.to_dict()
+    elif "ledger" in ctx and ctx["ledger"]:
+        l = ctx["ledger"]
+        is_credit_matched = bool(l.get("matching_credit_found", False))
+        amt = float(l.get("matching_credit_amount") or amount)
+        verification.ledger_check = {
+            "claim_amount": amt,
+            "matched": is_credit_matched,
+            "matching_entry": None,
+            "unverified_incoming": not is_credit_matched,
+            "summary": (
+                f"Matching incoming credit of ₹{amt:,.0f} verified."
+                if is_credit_matched
+                else f"No matching incoming ₹{amt:,.0f} credit found in your account ledger."
+            ),
+        }
+    else:
+        verification.ledger_check = None
+
+    # Construct the ContextGraph for explainability and UX
+    nodes = []
+    edges = []
+
+    # Message node (Root)
+    if correlation.message:
+        m = correlation.message
+        nodes.append({"id": "message", "type": "message", "label": f"Message: {INTENT_LABELS.get(m.intent, m.intent)}", "properties": {"intent": m.intent, "excerpt": m.message[:50]}})
+        if m.amount:
+            nodes.append({"id": "claim_amount", "type": "amount", "label": f"Claimed ₹{m.amount:,.0f}", "properties": {"amount": m.amount}})
+            edges.append({"source": "message", "target": "claim_amount", "label": "claims amount", "properties": {}})
+        if m.sender_label:
+            nodes.append({"id": "sender", "type": "sender", "label": m.sender_label, "properties": {"name": m.sender_label}})
+            edges.append({"source": "message", "target": "sender", "label": "sent by", "properties": {}})
+        if correlation.matched:
+            delay = f"{correlation.hours_since * 60:.0f} mins" if correlation.hours_since else "shortly"
+            edges.append({"source": "message", "target": "payment", "label": f"followed after {delay}", "properties": {"hours_since": correlation.hours_since}})
+
+    # Ledger node
+    if verification.ledger_check:
+        l = verification.ledger_check
+        label = "No matching credit" if l["unverified_incoming"] else "Matching credit verified"
+        nodes.append({"id": "ledger", "type": "ledger", "label": label, "properties": {"matched": l["matched"]}})
+        edges.append({"source": "ledger", "target": "payment", "label": "context for", "properties": {}})
+
+    # Payment node
+    nodes.append({"id": "payment", "type": "payment", "label": f"Payment ₹{amount:,.0f}", "properties": {"amount": amount}})
+    
+    # Payee node
+    is_first = ctx.get("behavior", {}).get("is_first_time", False) if ctx and "behavior" in ctx else (record is None or record.total_message_count == 0)
+    payee_label = "First-time payee" if is_first else "Known payee"
+    nodes.append({"id": "payee", "type": "payee", "label": payee_label, "properties": {"identifier": identifier, "is_first_time": is_first}})
+    edges.append({"source": "payment", "target": "payee", "label": "to", "properties": {}})
+
+    verification.context_graph = {"nodes": nodes, "edges": edges}
+
     return verification, record, matched, (time.perf_counter() - started) * 1000
 
 
@@ -138,7 +282,14 @@ def record_payment_decision(db: Session, verification_id: int, action: str) -> P
     if verification is None:
         return None
     verification.user_action = action
-    verification.acted_at = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc)
+    verification.acted_at = now
+    
+    # Append USER_DECISION to timeline
+    current_timeline = list(verification.timeline or [])
+    current_timeline.append({"step": f"USER_DECISION: {action}", "timestamp": now.isoformat()})
+    verification.timeline = current_timeline
+
     db.commit()
     db.refresh(verification)
     return verification
