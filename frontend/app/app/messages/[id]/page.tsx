@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, CircleAlert, Send, ShieldCheck, TriangleAlert, WifiOff } from "lucide-react";
+import { ArrowLeft, Check, CircleAlert, Send, ShieldCheck, TriangleAlert, WifiOff } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -38,6 +38,18 @@ export default function ThreadPage() {
   const [conversation, setConversation] = useState<Conversation | null | undefined>(undefined);
   const [states, setStates] = useState<Record<string, MessageState>>({});
   const [inspecting, setInspecting] = useState<AnalyzeMessageResponse | null>(null);
+  const [handoff, setHandoff] = useState<{ active: boolean; result?: AnalyzeMessageResponse | null }>({ active: false });
+
+  // When handoff is triggered, wait 1.5s then navigate
+  useEffect(() => {
+    if (handoff.active && handoff.result) {
+      const timer = setTimeout(() => {
+        const href = payHref(handoff.result!, conversation!);
+        if (href) router.push(href);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [handoff, conversation, router]);
 
   useEffect(() => {
     let cancelled = false;
@@ -148,16 +160,23 @@ export default function ThreadPage() {
                 </button>
               )}
               {result && result.is_payment_related && href && (
-                <div className="bubble-actions">
-                  <Link className="chip" href={href}>
-                    <Send size={12} aria-hidden="true" />
-                    Pay {result.entities.amount ? formatInr(result.entities.amount) : ""} via UPI
-                  </Link>
-                  {result.risk_band === "LOW" && (
-                    <button type="button" className="chip" onClick={() => setInspecting(result)}>
-                      <ShieldCheck size={12} aria-hidden="true" /> Checked
-                    </button>
-                  )}
+                <div className="mt-2 bg-white border border-zinc-200 rounded-xl overflow-hidden shadow-sm">
+                  <button 
+                    type="button" 
+                    className="w-full text-left p-3 flex items-center justify-between active:bg-zinc-50"
+                    onClick={() => setHandoff({ active: true, result })}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center">
+                        <ShieldCheck size={16} className="text-indigo-600" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-semibold text-zinc-900">Review payment request</div>
+                        <div className="text-xs text-zinc-500">with PausePay</div>
+                      </div>
+                    </div>
+                    <ArrowLeft size={16} className="text-zinc-400 rotate-180" />
+                  </button>
                 </div>
               )}
             </div>
@@ -189,6 +208,39 @@ export default function ThreadPage() {
           </>
         )}
       </BottomSheet>
+
+      {/* Context Handoff Interstitial */}
+      <div 
+        className={`absolute inset-0 z-50 bg-[#0F0F12] flex flex-col items-center justify-center text-white px-6 transition-all duration-300 ${
+          handoff.active ? "animate-in fade-in opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+      >
+        <h2 className="text-[13px] font-bold uppercase tracking-widest text-indigo-400 mb-8">Context Captured</h2>
+        
+        <div className="space-y-3 text-[15px] font-medium text-zinc-200 w-full max-w-[200px] mb-8">
+          <div className="flex items-center gap-4"><Check size={18} className="text-emerald-400" /> Message</div>
+          <div className="flex items-center gap-4"><Check size={18} className="text-emerald-400" /> Amount</div>
+          <div className="flex items-center gap-4"><Check size={18} className="text-emerald-400" /> Recipient</div>
+          <div className="flex items-center gap-4"><Check size={18} className="text-emerald-400" /> Timestamp</div>
+        </div>
+
+        <div className="text-indigo-500/50 mb-8">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+        </div>
+
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-5 w-full max-w-[280px] text-center shadow-xl">
+          <div className="text-2xl font-light mb-1">
+            {handoff.result?.entities.amount ? formatInr(handoff.result.entities.amount) : "Payment"}
+          </div>
+          <div className="text-sm font-medium text-zinc-300 flex items-center justify-center gap-2">
+            <span className="text-zinc-500">&rarr;</span> {conversation?.name || displayIdentifier(handoff.result?.entities.upi_id || "")}
+          </div>
+        </div>
+
+        <div className="absolute bottom-12 text-[12px] font-bold uppercase tracking-widest text-zinc-500 animate-pulse">
+          Opening FLOW...
+        </div>
+      </div>
     </main>
   );
 }

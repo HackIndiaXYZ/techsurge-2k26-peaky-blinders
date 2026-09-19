@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleAlert, ShieldAlert, TriangleAlert } from "lucide-react";
+import { CircleAlert, Landmark, ShieldAlert, TriangleAlert } from "lucide-react";
 import { useState } from "react";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { ScoreLockup } from "@/components/risk/RiskBadge";
@@ -33,12 +33,12 @@ export function PausePayWarningSheet({ open, verification, busy, onCancelAndRepo
   }
 
   return (
-    <BottomSheet open={open} onClose={onDismiss} labelledBy="pausepay-warning-title" blocking>
+    <BottomSheet open={open} onClose={onDismiss} labelledBy="sheet-title" blocking>
       <p className={`sheet__kicker sheet__kicker--${level}`}>
         {high ? <TriangleAlert size={15} aria-hidden="true" /> : <CircleAlert size={15} aria-hidden="true" />}
         PausePay {high ? "warning" : "review"}
       </p>
-      <h2 id="pausepay-warning-title">{verification.title}</h2>
+      <h2 id="sheet-title" style={{ fontSize: "var(--text-md)", marginBottom: "0.5rem" }}>WHY PAUSEPAY PAUSED</h2>
       <p className="sheet__summary">{verification.summary}</p>
 
       <div className="sheet__score">
@@ -51,6 +51,16 @@ export function PausePayWarningSheet({ open, verification, busy, onCancelAndRepo
         <ScoreLockup score={verification.risk_score} band={verification.risk_band} />
       </div>
 
+      {verification.ledger_check && verification.ledger_check.unverified_incoming && (
+        <div className="notice notice--risk" style={{ margin: "var(--space-2) 0", display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
+          <Landmark size={16} aria-hidden="true" style={{ flexShrink: 0, marginTop: "2px" }} />
+          <div>
+            <strong style={{ fontSize: "var(--text-xs)" }}>Simulated Bank Ledger Check</strong>
+            <p style={{ margin: "2px 0 0 0", fontSize: "var(--text-xs)" }}>{verification.ledger_check.summary}</p>
+          </div>
+        </div>
+      )}
+
       {evidence && (
         <blockquote className="sheet__evidence">
           <strong>
@@ -62,17 +72,76 @@ export function PausePayWarningSheet({ open, verification, busy, onCancelAndRepo
       )}
 
       {namedSignals.length > 0 && (
-        <>
-          <span className="mono-label section-label">Detected signals</span>
-          <ul className="reason-list">
-            {namedSignals.map((signal) => (
-              <li key={signal.code}>
-                <ShieldAlert size={14} aria-hidden="true" />
-                <span>{signal.label}</span>
-              </li>
+        <div className="sheet__evidence-groups" style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1rem", marginBottom: "1rem" }}>
+          {/* Ledger Evidence (Hero Rule) */}
+          {namedSignals.filter(s => s.code.includes("CREDIT") || s.code === "COUNTERPARTY_MISMATCH").map(s => (
+            <div key={s.code} style={{ display: "flex", gap: "0.5rem", color: "var(--color-risk-fg)", fontWeight: 500, fontSize: "var(--text-sm)" }}>
+              <TriangleAlert size={16} style={{ marginTop: 2 }} />
+              <span>{s.evidence || s.label}</span>
+            </div>
+          ))}
+
+          {/* Recipient Evidence */}
+          {(() => {
+            const recipientSignals = namedSignals.filter(s => s.family === "payee_identity" || s.code === "FIRST_TIME_PAYEE" || s.code === "ESCALATING_TO_NEW_PAYEE");
+            if (recipientSignals.length === 0) return null;
+            return (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                <span className="mono-label section-label">Recipient</span>
+                {recipientSignals.map(s => (
+                  <p key={s.code} style={{ fontSize: "var(--text-sm)", margin: 0 }}>{s.evidence || s.label}</p>
+                ))}
+              </div>
+            );
+          })()}
+
+          {/* Message Evidence */}
+          {(() => {
+            const msgSignals = namedSignals.filter(s => s.family === "social_engineering" || s.code.includes("MESSAGE"));
+            if (msgSignals.length === 0) return null;
+            return (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                <span className="mono-label section-label">Message</span>
+                {msgSignals.map(s => (
+                  <p key={s.code} style={{ fontSize: "var(--text-sm)", margin: 0 }}>{s.evidence || s.label}</p>
+                ))}
+              </div>
+            );
+          })()}
+
+          {/* Amount/Transaction Evidence */}
+          {(() => {
+            const amtSignals = namedSignals.filter(s => (s.family === "transaction" && s.code !== "FIRST_TIME_PAYEE" && s.code !== "ESCALATING_TO_NEW_PAYEE") || s.code.includes("AMOUNT"));
+            if (amtSignals.length === 0) return null;
+            return (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                <span className="mono-label section-label">Amount & Timing</span>
+                {amtSignals.map(s => (
+                  <p key={s.code} style={{ fontSize: "var(--text-sm)", margin: 0 }}>{s.evidence || s.label}</p>
+                ))}
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
+      {verification.context_graph && verification.context_graph.nodes.length > 0 && (
+        <details className="sheet__graph-details" style={{ margin: "var(--space-md) 0" }}>
+          <summary className="link-button" style={{ fontSize: "var(--text-xs)" }}>
+            ▸ See how PausePay connected this
+          </summary>
+          <div style={{ padding: "var(--space-sm) 0 var(--space-sm) var(--space-md)", borderLeft: "2px solid var(--color-border)", margin: "var(--space-sm) 0 0 var(--space-xs)", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+            <span className="mono-label section-label" style={{ marginBottom: "0.25rem" }}>CONTEXT</span>
+            {verification.context_graph.nodes.map((node, i) => (
+              <div key={node.id} style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                {i > 0 && <div style={{ color: "var(--color-muted)", fontSize: "0.7rem", paddingLeft: "0.5rem" }}>↓</div>}
+                <div style={{ fontSize: "var(--text-sm)", fontWeight: 500, display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  {node.label}
+                </div>
+              </div>
             ))}
-          </ul>
-        </>
+          </div>
+        </details>
       )}
 
       {confirming ? (

@@ -18,25 +18,32 @@ type Scenario = {
 // entities come from the live PausePay backend for every scenario.
 const scenarios: Scenario[] = [
   {
-    id: "kyc",
-    tab: "KYC fee demand",
-    title: "A payment demand dressed up as compliance.",
-    message: "Your bank KYC expires today. Pay ₹4,999 immediately to secureverify@upi or your account will be blocked.",
-    payee: "Unknown sender · not in contacts",
+    id: "accidental-transfer",
+    tab: "Accidental transfer",
+    title: "A classic return-money scam.",
+    message: "I accidentally sent ₹5,000. Please return it to rahul@upi.",
+    payee: "Rahul",
   },
   {
-    id: "merchant",
-    tab: "New merchant",
-    title: "New does not automatically mean dangerous.",
-    message: "Star Mobile Repair: your repair is complete. Total ₹2,350. UPI: starmobile@okbizaxis. Collect anytime before 8 pm.",
-    payee: "Star Mobile Repair · first payment",
+    id: "fake-refund",
+    tab: "Fake refund",
+    title: "A payment demand disguised as a refund.",
+    message: "Your refund of ₹2,499 is pending. Send ₹2,499 to verify.",
+    payee: "Unknown sender",
   },
   {
-    id: "hospital",
-    tab: "Urgent genuine",
-    title: "Urgency alone is not treated as a scam.",
-    message: "Lakeview Hospital: admission deposit of ₹18,000 for patient Suresh K is due today so the admission can be completed. Pay to UPI lakeviewhospital@icici.",
-    payee: "Lakeview Hospital · business",
+    id: "urgent",
+    tab: "Urgent request",
+    title: "High urgency coupled with an unusual amount.",
+    message: "Emergency! Send ₹8,000 immediately.",
+    payee: "New Payee",
+  },
+  {
+    id: "legitimate",
+    tab: "Legitimate payment",
+    title: "Contextual reasoning means legitimate payments pass easily.",
+    message: "Your monthly subscription of ₹1,200 is due.",
+    payee: "Known Merchant",
   },
 ];
 

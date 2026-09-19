@@ -55,6 +55,33 @@ _SIGNAL_SENTENCE: dict[str, str] = {
     "AMOUNT_MATCH": "{identifier_label}",
     "RECENT_MESSAGE": "That message arrived within the last hour.",
     "REPEATED_MESSAGES": "{identifier_label}",
+    # Contextual signals
+    "FIRST_TIME_PAYEE": "This is the first time you are sending money to this recipient.",
+    "AMOUNT_ABOVE_BASELINE": "The requested amount is significantly higher than your typical transactions.",
+    "VELOCITY_BURST": "Multiple rapid payments were initiated in a short period.",
+    "OFF_PATTERN_HOUR": "This payment is occurring at an unusual time outside your normal activity hours.",
+    "ESCALATING_TO_NEW_PAYEE": "Rapidly increasing payment amount to an unestablished payee.",
+    "INBOUND_CREDIT_UNVERIFIED": "No matching incoming credit was found in your bank ledger.",
+    "COUNTERPARTY_MISMATCH": "The claimed sender of the money differs from this payment's recipient.",
+    "AMOUNT_ECHO": "The payment amount directly echoes the amount mentioned in an unverified message.",
+    "SHORT_LATENCY_AFTER_MESSAGE": "Payment initiated within seconds of receiving an urgent message.",
+    "PAYEE_SOURCED_FROM_MESSAGE": "The payee address was copied directly from an unverified message.",
+    "CREDENTIAL_OR_PIN_REQUEST": "An explicit request was made for your UPI PIN, OTP, or credentials.",
+    "MISTAKEN_TRANSFER_CLAIM": "The sender claims money was sent by mistake and urgently demands a return.",
+    "AUTHORITY_IMPERSONATION": "The sender claims to represent a bank, law enforcement, or government authority.",
+    "REDIRECT_INSTRUCTION": "You were instructed to switch communication to an unverified private channel.",
+    "SECRECY_OR_ISOLATION": "You were told to keep this transaction secret and not notify your bank or family.",
+    "URGENCY_PRESSURE": "Extreme time pressure is being applied to prevent verification.",
+    "UNVERIFIED_CHANNEL": "This payment request originated from an unverified channel.",
+    "VPA_NAME_MISMATCH": "The registered bank account name does not match the claimed identity.",
+    "LOOKALIKE_VPA": "The UPI address closely resembles a known brand or entity (lookalike spoofing).",
+    "PERSONAL_VPA_IN_MERCHANT_CONTEXT": "A personal UPI account is being used for what was described as an official or merchant payment.",
+    # Mitigators
+    "INBOUND_CREDIT_VERIFIED": "A verified incoming credit was confirmed in your account ledger.",
+    "ESTABLISHED_PAYEE": "You have a history of successful payments to this recipient.",
+    "PAYEE_IN_CONTACTS": "This payee is in your verified contacts list.",
+    "QR_SCANNED_IN_PERSON": "The merchant QR code was scanned in person.",
+    "VERIFIED_MERCHANT_VPA": "The payee is an officially verified merchant.",
 }
 
 

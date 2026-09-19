@@ -34,6 +34,15 @@ def init_db() -> None:
 
     Base.metadata.create_all(bind=engine)
 
+    # Defensive sqlite column migrations
+    with engine.begin() as conn:
+        try:
+            cols = [row[1] for row in conn.exec_driver_sql("PRAGMA table_info(payment_verifications)").fetchall()]
+            if cols and "timeline" not in cols:
+                conn.exec_driver_sql("ALTER TABLE payment_verifications ADD COLUMN timeline JSON DEFAULT '[]'")
+        except Exception:
+            pass
+
 
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()

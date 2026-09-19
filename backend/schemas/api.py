@@ -25,6 +25,8 @@ class Signal(BaseModel):
     code: str
     label: str
     weight: int
+    family: str | None = None
+    evidence: str | None = None
 
 
 class Entities(BaseModel):
@@ -136,6 +138,10 @@ class AnalyzeMessageResponse(BaseModel):
     latency_ms: float
     cached: bool = False
     engine_version: str
+    mitigators: list[Signal] = Field(default_factory=list)
+    families: list[str] = Field(default_factory=list)
+    override: bool = False
+    override_reason: str | None = None
 
 
 # --- Payee verification -----------------------------------------------------
@@ -145,6 +151,7 @@ class VerifyPayeeRequest(BaseModel):
     identifier: str = Field(min_length=3, max_length=128)
     amount: float = Field(gt=0, le=10_000_000)
     payee_name: str | None = Field(default=None, max_length=128)
+    context: dict | None = None
 
     @field_validator("identifier")
     @classmethod
@@ -169,6 +176,58 @@ class MatchedMessage(BaseModel):
     created_at: UtcDatetime
 
 
+class LedgerEntryOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    entry_type: str
+    amount: float
+    counterparty: str | None = None
+    description: str | None = None
+    reference_id: str | None = None
+    created_at: UtcDatetime
+
+
+class LedgerEntryCreate(BaseModel):
+    entry_type: Literal["CREDIT", "DEBIT"] = "CREDIT"
+    amount: float = Field(gt=0)
+    counterparty: str | None = Field(default=None, max_length=128)
+    description: str | None = Field(default=None, max_length=256)
+    reference_id: str | None = Field(default=None, max_length=64)
+
+
+class CheckCreditRequest(BaseModel):
+    amount: float = Field(gt=0)
+    sender_name: str | None = Field(default=None, max_length=128)
+
+
+class LedgerCheckResponse(BaseModel):
+    claim_amount: float = 0.0
+    matched: bool = False
+    matching_entry: LedgerEntryOut | None = None
+    unverified_incoming: bool = False
+    summary: str = ""
+
+
+class GraphNode(BaseModel):
+    id: str
+    type: str
+    label: str
+    properties: dict = Field(default_factory=dict)
+
+
+class GraphEdge(BaseModel):
+    source: str
+    target: str
+    label: str
+    properties: dict = Field(default_factory=dict)
+
+
+class ContextGraph(BaseModel):
+    nodes: list[GraphNode]
+    edges: list[GraphEdge]
+
+
 class VerifyPayeeResponse(BaseModel):
     verification_id: int
     identifier: str
@@ -187,6 +246,13 @@ class VerifyPayeeResponse(BaseModel):
     identifier_risk: IdentifierRiskOut | UnknownIdentifierOut
     latency_ms: float
     engine_version: str
+    mitigators: list[Signal] = Field(default_factory=list)
+    families: list[str] = Field(default_factory=list)
+    override: bool = False
+    override_reason: str | None = None
+    ledger_check: LedgerCheckResponse | None = None
+    context_graph: ContextGraph | None = None
+    timeline: list[dict] | None = None
 
 
 class PaymentDecisionRequest(BaseModel):
@@ -211,6 +277,7 @@ class PaymentVerificationOut(BaseModel):
     user_action: str | None = None
     acted_at: UtcDatetime | None = None
     created_at: UtcDatetime
+    timeline: list[dict] | None = None
 
 
 # --- Reporting --------------------------------------------------------------

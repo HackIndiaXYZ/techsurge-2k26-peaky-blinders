@@ -1,22 +1,21 @@
 "use client";
 
-import { ArrowLeft, Check, CircleAlert, ShieldCheck, TriangleAlert, WifiOff, X } from "lucide-react";
+import { ArrowLeft, Check, ShieldCheck, TriangleAlert, WifiOff, X, User, BarChart2, FileText } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import { PausePayWarningSheet } from "@/components/payment/PausePayWarningSheet";
-import { IdentifierPill } from "@/components/risk/RiskBadge";
-import { ApiError, ApiUnavailableError, errorMessage, recordPaymentDecision, reportFraud, verifyPayee } from "@/lib/api";
+import { PausePayWarningPage } from "@/components/payment/PausePayWarningPage";
+import { ApiUnavailableError, errorMessage, recordPaymentDecision, reportFraud, verifyPayee, analyzeMessage } from "@/lib/api";
 import type { VerifyPayeeResponse } from "@/lib/types";
 import { displayIdentifier, formatInr } from "@/lib/utils";
 
-type Step = "payee" | "amount" | "confirm" | "paid" | "cancelled" | "continued";
+type Step = "pay" | "checking" | "cancelled" | "continued" | "paid";
 
 const scenarios = [
-  { label: "Rahul · ₹300", to: "rahul@oksbi", amount: "300", name: "Rahul Verma" },
-  { label: "secureverify@upi · ₹4,999", to: "secureverify@upi", amount: "4999", name: "" },
-  { label: "rewards.claim@upi · ₹499", to: "rewards.claim@upi", amount: "499", name: "" },
-  { label: "Unknown payee · ₹1,200", to: "meera.iyer@okhdfcbank", amount: "1200", name: "Meera Iyer" },
+  { label: "Rahul · ₹5,000", to: "rahul@upi", amount: "5000", name: "Rahul Sharma", message: "I accidentally sent ₹5,000. Please return it to rahul@upi." },
+  { label: "Fake refund · ₹2,499", to: "refund.claim@ybl", amount: "2499", name: "Amit Kumar", message: "Your refund of ₹2,499 is pending. Send ₹2,499 to verify." },
+  { label: "Urgent request · ₹8,000", to: "emergency@upi", amount: "8000", name: "New Payee", message: "Emergency! Send ₹8,000 immediately." },
+  { label: "Subscription · ₹1,200", to: "netflix@okhdfcbank", amount: "1200", name: "Known Merchant" },
 ];
 
 const UPI_RE = /^[a-z0-9][a-z0-9._-]{1,63}@[a-z][a-z0-9]{1,31}$/i;
@@ -29,61 +28,80 @@ function looksValid(value: string): boolean {
 
 function PayFlow() {
   const params = useSearchParams();
-  const [step, setStep] = useState<Step>("payee");
+  const router = useRouter();
+  
+  const [step, setStep] = useState<Step>("pay");
   const [to, setTo] = useState(params.get("to") ?? "");
   const [name, setName] = useState(params.get("name") ?? "");
   const [amount, setAmount] = useState(params.get("amount") ?? "");
-  const [touched, setTouched] = useState(false);
-  const [verifying, setVerifying] = useState(false);
+  
   const [verification, setVerification] = useState<VerifyPayeeResponse | null>(null);
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const [warningOpen, setWarningOpen] = useState(false);
   const [busy, setBusy] = useState<"report" | "continue" | "pay" | null>(null);
   const [error, setError] = useState<{ message: string; unavailable: boolean } | null>(null);
-  const [reportNote, setReportNote] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (params.get("to")) setStep("amount");
-  }, [params]);
+  
+  const [checkProgress, setCheckProgress] = useState(0);
 
   const amountNumber = Number(amount);
-  const amountValid = Number.isFinite(amountNumber) && amountNumber > 0 && amountNumber <= 10_000_000;
+  const amountValid = Number.isFinite(amountNumber) && amountNumber > 0 && amountNumber <= 10_000_000 && to.trim().length > 0;
 
   function reset() {
-    setStep("payee");
+    setStep("pay");
     setTo("");
     setName("");
     setAmount("");
     setVerification(null);
     setError(null);
-    setReportNote(null);
-    setTouched(false);
+    setWarningOpen(false);
   }
 
   async function verify() {
-    if (!amountValid || verifying) return;
-    setVerifying(true);
+    if (!amountValid) return;
+    setStep("checking");
     setError(null);
+    setCheckProgress(1);
+    
     try {
+      // Find if this matches a scenario with a message
+      const activeScenario = scenarios.find(s => s.to === to.trim());
+      if (activeScenario && activeScenario.message) {
+        try {
+          await analyzeMessage({ message: activeScenario.message, source: "MESSENGER_SIM", source_ref: "pay-sim", sender_label: activeScenario.name });
+        } catch {
+          // non-critical message analysis
+        }
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      setCheckProgress(2);
+
       const result = await verifyPayee({ identifier: to.trim(), amount: amountNumber, payee_name: name.trim() || undefined });
+      
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      setCheckProgress(3);
+
+      await new Promise((resolve) => setTimeout(resolve, 400));
       setVerification(result);
-      setStep("confirm");
-      if (result.decision !== "ALLOW") setSheetOpen(true);
+      if (result.decision !== "ALLOW") {
+        setWarningOpen(true);
+        setStep("pay"); // return to pay state underneath the warning
+      } else {
+        await payWithResult(result);
+      }
     } catch (err) {
       setError({ message: errorMessage(err), unavailable: err instanceof ApiUnavailableError });
-      if (err instanceof ApiError && err.status === 422) setStep("payee");
-    } finally {
-      setVerifying(false);
+      setStep("pay");
     }
   }
 
-  async function pay() {
-    if (!verification) return;
+  async function payWithResult(res: VerifyPayeeResponse) {
     setBusy("pay");
     try {
-      await recordPaymentDecision(verification.verification_id, "PAID");
+      await recordPaymentDecision(res.verification_id, "PAID");
       setStep("paid");
     } catch (err) {
       setError({ message: errorMessage(err), unavailable: err instanceof ApiUnavailableError });
+      setStep("pay");
     } finally {
       setBusy(null);
     }
@@ -93,9 +111,8 @@ function PayFlow() {
     if (!verification) return;
     setBusy("report");
     try {
-      const report = await reportFraud({ identifier: verification.identifier, verification_id: verification.verification_id, amount: verification.amount, reason: verification.summary });
-      setReportNote(report.message);
-      setSheetOpen(false);
+      await reportFraud({ identifier: verification.identifier, verification_id: verification.verification_id, amount: verification.amount, reason: verification.summary });
+      setWarningOpen(false);
       setStep("cancelled");
     } catch (err) {
       setError({ message: errorMessage(err), unavailable: err instanceof ApiUnavailableError });
@@ -109,7 +126,7 @@ function PayFlow() {
     setBusy("continue");
     try {
       await recordPaymentDecision(verification.verification_id, "CONTINUED_AFTER_WARNING");
-      setSheetOpen(false);
+      setWarningOpen(false);
       setStep("continued");
     } catch (err) {
       setError({ message: errorMessage(err), unavailable: err instanceof ApiUnavailableError });
@@ -117,8 +134,6 @@ function PayFlow() {
       setBusy(null);
     }
   }
-
-  const stepIndex = step === "payee" ? 0 : step === "amount" ? 1 : 2;
 
   const errorBlock = error && (
     <p className="notice notice--risk" role="alert" style={{ marginBlockStart: "var(--space-md)" }}>
@@ -130,198 +145,175 @@ function PayFlow() {
     </p>
   );
 
-  if (step === "paid" || step === "continued" || step === "cancelled") {
-    const cancelled = step === "cancelled";
-    const continued = step === "continued";
+  if (step === "checking") {
     return (
-      <main className="app-content">
-        <div className="success">
-          <span className={`success__icon${cancelled ? " success__icon--cancel" : continued ? " success__icon--warn" : ""}`} aria-hidden="true">
-            {cancelled ? <X size={28} /> : continued ? <TriangleAlert size={28} /> : <Check size={28} />}
-          </span>
-          <h2>{cancelled ? "Payment cancelled" : "Payment simulated"}</h2>
-          <p>
-            {cancelled && `Identifier reported. ${reportNote ?? ""}`}
-            {step === "paid" && `${formatInr(verification?.amount ?? amountNumber)} to ${displayIdentifier(verification?.identifier ?? to)} · PausePay check complete.`}
-            {continued && `${formatInr(verification?.amount ?? amountNumber)} to ${displayIdentifier(verification?.identifier ?? to)}. You continued despite a PausePay warning; this choice has been recorded.`}
-          </p>
-          <span className="mono-label">No real money moved · synthetic UPI simulator</span>
-          <div className="button-row" style={{ width: "100%" }}>
-            <button type="button" className="button button--block" onClick={reset}>
-              New payment
-            </button>
-            <Link className="button button--ghost button--block" href="/app/activity">
-              View activity
-            </Link>
+      <main className="flex flex-col h-full bg-[#fcfdff] text-zinc-900 items-center px-5 pt-20">
+        
+        {/* Logo and Rings */}
+        <div className="relative w-48 h-48 flex items-center justify-center mb-10">
+          <div className="absolute inset-0 rounded-full bg-blue-600/5 animate-[ping_3s_ease-out_infinite]" />
+          <div className="absolute inset-6 rounded-full bg-blue-600/10 animate-[ping_3s_ease-out_infinite_400ms]" />
+          <div className="absolute inset-12 rounded-full bg-blue-600/15" />
+          
+          <div className="relative z-10 text-blue-600 shadow-[0_4px_24px_-8px_rgba(37,99,235,0.4)] rounded-2xl bg-white p-3">
+             <svg width="40" height="40" viewBox="0 0 48 48" fill="none">
+               <path d="M12 12C12 8.68629 14.6863 6 18 6H30C36.6274 6 42 11.3726 42 18C42 24.6274 36.6274 30 30 30H24V18H18V30H12V12Z" fill="currentColor"/>
+               <path d="M12 30V42C12 45.3137 14.6863 48 18 48H24V30H12Z" fill="currentColor"/>
+             </svg>
+          </div>
+        </div>
+
+        <h2 className="text-[26px] font-bold tracking-tight text-zinc-900 mb-3">Checking this payment</h2>
+        <p className="text-zinc-500 text-[15px] font-medium text-center max-w-[280px] mb-12 leading-snug">
+          Looking at the recipient, amount, and your payment pattern.
+        </p>
+        
+        <div className="w-full space-y-4">
+          
+          {/* Card 1 */}
+          <div className="border border-zinc-200/80 rounded-2xl p-4 flex gap-4 items-center bg-white shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)]">
+            <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+              <User size={24} className="text-blue-600" fill="currentColor" strokeWidth={1.5} />
+            </div>
+            <div className="flex-1">
+              <div className="text-[14px] font-bold text-zinc-900 mb-2">Recipient familiarity</div>
+              <div className="h-2 w-full bg-zinc-100 rounded-full overflow-hidden">
+                <div className="h-full bg-blue-600 rounded-full transition-all duration-1000 ease-out" style={{ width: checkProgress >= 1 ? '100%' : '15%' }} />
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2 */}
+          <div className="border border-zinc-200/80 rounded-2xl p-4 flex gap-4 items-center bg-white shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)]">
+            <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+              <BarChart2 size={24} className="text-blue-600" strokeWidth={2.5} />
+            </div>
+            <div className="flex-1">
+              <div className="text-[14px] font-bold text-zinc-900 mb-2">Amount pattern</div>
+              <div className="h-2 w-full bg-zinc-100 rounded-full overflow-hidden">
+                <div className="h-full bg-blue-600 rounded-full transition-all duration-1000 ease-out" style={{ width: checkProgress >= 2 ? '100%' : '20%' }} />
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3 */}
+          <div className="border border-zinc-200/80 rounded-2xl p-4 flex gap-4 items-center bg-white shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)]">
+            <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+              <FileText size={24} className="text-blue-600" fill="currentColor" strokeWidth={1} />
+            </div>
+            <div className="flex-1">
+              <div className="text-[14px] font-bold text-zinc-900 mb-2">Payment context</div>
+              <div className="h-2 w-full bg-zinc-100 rounded-full overflow-hidden">
+                <div className="h-full bg-blue-600 rounded-full transition-all duration-1000 ease-out" style={{ width: checkProgress >= 3 ? '100%' : '5%' }} />
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div className="mt-auto pb-8 text-center flex flex-col items-center">
+          <p className="text-[15px] text-zinc-500 font-medium mb-6">This usually takes a moment.</p>
+          <button type="button" onClick={() => reset()} className="text-[15px] font-bold text-blue-600 mb-8 active:opacity-70 transition-opacity">
+            Cancel
+          </button>
+          <div className="text-[11px] text-zinc-400 font-medium">
+            PausePay concept &bull; Demo only
           </div>
         </div>
       </main>
     );
   }
 
+  if (step === "paid" || step === "continued" || step === "cancelled") {
+    const cancelled = step === "cancelled";
+    const continued = step === "continued";
+    return (
+      <main className="flex flex-col h-full bg-[#f8f9fa] text-zinc-900 p-6 pt-12 items-center text-center">
+        <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-6 shadow-sm border ${cancelled ? "bg-red-50 text-red-600 border-red-100" : continued ? "bg-white text-zinc-900 border-zinc-200" : "bg-emerald-50 text-emerald-600 border-emerald-100"}`}>
+          {cancelled ? <X size={32} /> : continued ? <TriangleAlert size={28} /> : <Check size={32} strokeWidth={3} />}
+        </div>
+        <h2 className="text-2xl font-bold mb-3">{cancelled ? "Payment cancelled" : continued ? "You chose to continue" : "Payment successful"}</h2>
+        <p className="text-sm text-zinc-500 mb-10 leading-relaxed max-w-[280px]">
+          {cancelled ? "No money was sent. This identifier has been reported." : 
+           continued ? "PausePay's warning was recorded. The simulated payment proceeded." : 
+           "The synthetic payment was sent securely."}
+        </p>
+        
+        <div className="mt-auto w-full space-y-3">
+          <button type="button" className="w-full bg-white text-zinc-900 font-bold py-3.5 rounded-xl border border-zinc-200 shadow-sm active:bg-zinc-50 transition-colors" onClick={() => router.push("/app/messages")}>
+            Start over
+          </button>
+          <Link href="/app/activity" className="block w-full bg-transparent text-indigo-600 font-semibold py-3.5 rounded-xl active:bg-indigo-50/50 transition-colors">
+            View activity
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
   return (
-    <main className="app-content">
-      <div className="screen-title">
-        <span className="mono-label">Simulated UPI app</span>
-        <h1>{step === "payee" ? "Pay someone" : step === "amount" ? "Enter amount" : "Confirm payment"}</h1>
-      </div>
-      <div className="stepper" aria-hidden="true">
-        {[0, 1, 2].map((i) => (
-          <span key={i} className={i === stepIndex ? "is-active" : i < stepIndex ? "is-done" : ""} />
-        ))}
-      </div>
-
-      {step === "payee" && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            setTouched(true);
-            if (looksValid(to)) setStep("amount");
-          }}
-        >
-          <div className="field">
-            <label htmlFor="payee">UPI ID or mobile number</label>
-            <input
-              id="payee"
-              className="input"
-              value={to}
-              onChange={(e) => setTo(e.target.value)}
-              placeholder="name@bank or 98765 43210"
-              autoComplete="off"
-              inputMode="email"
-              aria-invalid={touched && !looksValid(to) ? "true" : undefined}
-              required
-            />
-            {touched && !looksValid(to) && <span className="field__error">Enter a valid UPI ID (name@bank) or a 10-digit Indian mobile number.</span>}
-          </div>
-          <div className="field">
-            <label htmlFor="payee-name">Name (optional)</label>
-            <input id="payee-name" className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="As shown by your bank" autoComplete="off" />
-          </div>
-          <span className="field__hint">Demo payees:</span>
-          <div className="chip-row" style={{ marginBlock: "var(--space-xs) var(--space-md)" }}>
-            {scenarios.map((s) => (
-              <button
-                key={s.to}
-                type="button"
-                className="chip"
-                onClick={() => {
-                  setTo(s.to);
-                  setName(s.name);
-                  setAmount(s.amount);
-                  setTouched(false);
-                }}
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
-          <button type="submit" className="button button--accent button--block">
-            Continue
+    <>
+      <main className="flex flex-col h-full bg-[#f8f9fa] text-zinc-900 overflow-y-auto">
+        <div className="px-5 pt-14 pb-2 flex items-center justify-between">
+          <button onClick={() => router.back()} className="w-10 h-10 rounded-full flex items-center justify-center bg-white shadow-sm border border-zinc-200">
+            <ArrowLeft size={20} className="text-zinc-700" />
           </button>
-          {errorBlock}
-        </form>
-      )}
+          <div className="font-bold text-lg tracking-tight">FLOW</div>
+          <div className="w-10 h-10" />
+        </div>
 
-      {step === "amount" && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            verify();
-          }}
-        >
-          <div className="pay-summary">
-            <span className="avatar" aria-hidden="true">
-              {(name || to).slice(0, 2).toUpperCase()}
-            </span>
-            <span className="pay-summary__name">{name || "Payee"}</span>
-            <span className="pay-summary__id">{displayIdentifier(to.trim())}</span>
-          </div>
-          <div className="field">
-            <label htmlFor="amount">Amount (₹)</label>
-            <input
-              id="amount"
-              className="input input--amount"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ""))}
-              inputMode="decimal"
-              placeholder="0"
-              autoFocus
-              required
-            />
-          </div>
-          <button type="submit" className="button button--accent button--block" disabled={!amountValid || verifying}>
-            {verifying ? <span className="spinner" aria-hidden="true" /> : <ShieldCheck size={16} aria-hidden="true" />}
-            {verifying ? "Checking payment context…" : "Verify payee & pay"}
-          </button>
-          <button type="button" className="link-button" style={{ marginBlockStart: "var(--space-sm)" }} onClick={() => setStep("payee")}>
-            <ArrowLeft size={14} aria-hidden="true" /> Change payee
-          </button>
-          {errorBlock}
-          <p className="privacy-note">
-            <ShieldCheck size={12} aria-hidden="true" />
-            Before confirmation, PausePay checks this payee against messages it has analysed, fraud reports and identifier history. Nothing is sent to a real bank.
-          </p>
-        </form>
-      )}
-
-      {step === "confirm" && verification && (
-        <div>
-          <div className="pay-summary">
-            <span className="avatar" aria-hidden="true">
-              {(name || verification.identifier).slice(0, 2).toUpperCase()}
-            </span>
-            <span className="pay-summary__name">{name || "Payee"}</span>
-            <span className="pay-summary__id">{displayIdentifier(verification.identifier)}</span>
-            <span className="pay-summary__amount">{formatInr(verification.amount)}</span>
-          </div>
-
-          {verification.decision === "ALLOW" ? (
-            <p className="check-line check-line--ok">
-              <ShieldCheck size={14} aria-hidden="true" /> PausePay check complete · {Math.round(verification.latency_ms)} ms
-            </p>
-          ) : (
-            <p className={`check-line ${verification.decision === "INTERRUPT" ? "check-line--high" : "check-line--review"}`}>
-              {verification.decision === "INTERRUPT" ? <TriangleAlert size={14} aria-hidden="true" /> : <CircleAlert size={14} aria-hidden="true" />}
-              {verification.title} · {verification.risk_score}/100
-            </p>
-          )}
-
-          <section className="card card--muted">
-            <div className="result-head">
-              <h3>{verification.decision === "ALLOW" ? "What PausePay found" : "Paused before payment"}</h3>
-              <IdentifierPill band={verification.identifier_risk.risk_band} />
+        <form onSubmit={(e) => { e.preventDefault(); verify(); }} className="flex-1 flex flex-col px-6 pt-6">
+          <div className="flex flex-col items-center mb-10">
+            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-xl font-bold text-zinc-700 shadow-sm border border-zinc-200 mb-4">
+              {name ? name.slice(0, 2).toUpperCase() : <User size={24} className="text-zinc-400" />}
             </div>
-            <p className="result-summary">{verification.summary}</p>
-          </section>
+            <h2 className="text-xl font-bold text-zinc-900">{name || "Unknown Payee"}</h2>
+            <div className="text-sm font-medium text-zinc-500 mt-1">{to || "UPI ID required"}</div>
+          </div>
 
-          <div className="button-row">
-            {verification.decision === "ALLOW" ? (
-              <button type="button" className="button button--accent button--block" onClick={pay} disabled={busy !== null}>
-                {busy === "pay" ? <span className="spinner" aria-hidden="true" /> : null} Pay {formatInr(verification.amount)}
-              </button>
-            ) : (
-              <button type="button" className="button button--ghost button--block" onClick={() => setSheetOpen(true)}>
-                <TriangleAlert size={15} aria-hidden="true" /> Review PausePay warning
-              </button>
-            )}
-            <button type="button" className="button button--ghost button--block" onClick={() => setStep("amount")} disabled={busy !== null}>
-              Back
+          <div className="flex flex-col items-center justify-center flex-1">
+            <span className="text-sm font-semibold text-zinc-500 mb-2">Paying</span>
+            <div className="relative flex items-center justify-center w-full max-w-[200px]">
+              <span className="absolute left-0 text-3xl font-light text-zinc-400 select-none">₹</span>
+              <input
+                className="w-full text-5xl font-light text-center bg-transparent outline-none text-zinc-900 placeholder:text-zinc-300"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value.replace(/[^\d]/g, ""))}
+                placeholder="0"
+                inputMode="numeric"
+                autoFocus
+              />
+            </div>
+          </div>
+
+          <div className="mt-auto pb-6 pt-10">
+            {errorBlock}
+            
+            <div className="flex items-center justify-center gap-1.5 mb-4 text-xs font-semibold text-indigo-600">
+              <ShieldCheck size={14} />
+              Protected by PausePay
+            </div>
+            
+            <button 
+              type="submit" 
+              disabled={!amountValid}
+              className="w-full bg-zinc-900 text-white font-bold py-4 rounded-xl shadow-md active:scale-[0.98] transition-all disabled:opacity-50 disabled:active:scale-100"
+            >
+              Review payment
             </button>
           </div>
-          {errorBlock}
+        </form>
+      </main>
 
-          <PausePayWarningSheet
-            open={sheetOpen}
-            verification={verification}
-            busy={busy === "pay" ? null : busy}
-            onCancelAndReport={cancelAndReport}
-            onContinue={continueAnyway}
-            onDismiss={() => setSheetOpen(false)}
-          />
-        </div>
-      )}
-    </main>
+      <PausePayWarningPage
+        open={warningOpen}
+        verification={verification}
+        busy={busy === "pay" ? null : busy}
+        onGoBack={cancelAndReport}
+        onDismiss={() => setWarningOpen(false)}
+        onContinue={continueAnyway}
+      />
+    </>
   );
 }
 

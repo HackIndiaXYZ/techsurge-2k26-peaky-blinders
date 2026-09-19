@@ -37,6 +37,10 @@ async def lifespan(_app: FastAPI):
             added = seed_known_fraud(db, settings.fraud_list_path)
             if added:
                 logger.info("seeded %d confirmed-fraud identifiers", added)
+            from services.ledger_service import seed_synthetic_ledger
+            ledger_count = seed_synthetic_ledger(db)
+            if ledger_count:
+                logger.info("seeded %d synthetic ledger entries", ledger_count)
     yield
 
 

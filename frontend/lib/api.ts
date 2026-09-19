@@ -15,6 +15,8 @@ import type {
   HealthResponse,
   HistoryResponse,
   IdentifierRisk,
+  LedgerCheckResult,
+  LedgerEntry,
   PaymentVerification,
   ReportFraudRequest,
   ReportFraudResponse,
@@ -118,6 +120,21 @@ export function getHealth(): Promise<HealthResponse> {
 
 export function getConversations(): Promise<Conversation[]> {
   return request<Conversation[]>("/api/conversations");
+}
+
+export function getLedger(): Promise<LedgerEntry[]> {
+  return request<LedgerEntry[]>("/api/ledger");
+}
+
+export function checkLedgerCredit(amount: number, senderName?: string): Promise<LedgerCheckResult> {
+  return request<LedgerCheckResult>("/api/ledger/check", {
+    method: "POST",
+    body: JSON.stringify({ amount, sender_name: senderName }),
+  });
+}
+
+export function resetLedger(): Promise<LedgerEntry[]> {
+  return request<LedgerEntry[]>("/api/ledger/reset", { method: "POST" });
 }
 
 /** Human message for any error thrown by this module. */

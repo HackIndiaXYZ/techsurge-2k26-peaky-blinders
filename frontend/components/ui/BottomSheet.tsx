@@ -31,16 +31,20 @@ export function BottomSheet({ open, onClose, labelledBy, children, blocking = fa
     };
   }, [open, onClose, blocking]);
 
-  if (!open) return null;
-
   return (
     <div
-      className="sheet-scrim"
+      className={`sheet-scrim transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0 pointer-events-none"}`}
       onClick={(event) => {
         if (event.target === event.currentTarget && !blocking) onClose();
       }}
     >
-      <div className="sheet" role="dialog" aria-modal="true" aria-labelledby={labelledBy} ref={sheetRef}>
+      <div 
+        className={`sheet transition-transform duration-300 ease-out ${open ? "translate-y-0" : "translate-y-full"}`} 
+        role="dialog" 
+        aria-modal="true" 
+        aria-labelledby={labelledBy} 
+        ref={sheetRef}
+      >
         <div className="sheet__grip" aria-hidden="true" />
         {children}
       </div>
