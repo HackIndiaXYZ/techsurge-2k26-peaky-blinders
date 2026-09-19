@@ -209,6 +209,15 @@ export function renderRailBadge(rail: string) {
 
 const DEFAULT_WORKSPACES: CompanyApp[] = [
   {
+    id: "pausepay_admin",
+    name: "PausePay Admin",
+    packageName: "in.pausepay.network",
+    plan: "Global Administrator",
+    status: "Active",
+    apiKey: "pp_live_network_master_8a9b",
+    secretKey: "pp_sec_live_master_99f2b1a",
+  },
+  {
     id: "gpay",
     name: "Google Pay",
     packageName: "com.google.android.apps.nbu.paisa.user",
@@ -533,7 +542,8 @@ export function CompanyDashboard() {
   const [isOpen, setIsOpen] = useState(true);
   const [activeId, setActiveId] = useState("analytics");
   const [workspaces, setWorkspaces] = useState<CompanyApp[]>(DEFAULT_WORKSPACES);
-  const [activeWorkspace, setActiveWorkspace] = useState("Google Pay");
+  const [activeWorkspace, setActiveWorkspace] = useState("PausePay Admin");
+  const [inspectedApp, setInspectedApp] = useState<string | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [copiedText, setCopiedText] = useState<string | null>(null);
@@ -561,6 +571,17 @@ export function CompanyDashboard() {
   const activeItem = flatMockData.find((i) => i.id === activeId);
   const activeTitle = activeItem ? activeItem.title : "Analytics";
 
+  const getAppStats = (appName: string) => {
+    if (appName === "PausePay Admin") return { volume: "₹11,816.6 Cr", scams: "354,580", txCount: 6, growth: "↑ 22.4%" };
+    if (appName === "Google Pay") return { volume: "₹4,820.5 Cr", scams: "142,890", txCount: 6, growth: "↑ 18.4%" };
+    if (appName === "PhonePe") return { volume: "₹3,950.2 Cr", scams: "115,230", txCount: 5, growth: "↑ 12.1%" };
+    if (appName === "Paytm Payments") return { volume: "₹2,100.8 Cr", scams: "84,010", txCount: 4, growth: "↑ 8.3%" };
+    if (appName === "CRED Pay") return { volume: "₹945.1 Cr", scams: "12,450", txCount: 3, growth: "↑ 24.5%" };
+    return { volume: "₹0.0 Cr", scams: "0", txCount: 0, growth: "—" };
+  };
+  const targetStatsName = inspectedApp || activeWorkspace;
+  const activeStats = getAppStats(targetStatsName);
+
   // Keyboard shortcut for Command Palette (⌘K)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -576,7 +597,41 @@ export function CompanyDashboard() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  useEffect(() => {
+    if (activeWorkspace !== "PausePay Admin") {
+      const allowedIds = ["search", "api", "webhooks", "settings", "back-home", "analytics", "home"];
+      if (!allowedIds.includes(activeId)) {
+        setActiveId("analytics");
+      }
+    }
+  }, [activeWorkspace, activeId]);
+
+  const displayNavGroups = mockNavGroups.map(group => {
+    if (activeWorkspace !== "PausePay Admin") {
+      const allowedIds = ["search", "api", "webhooks", "analytics", "home"];
+      const filteredItems = group.items.filter(item => allowedIds.includes(item.id));
+      return { ...group, items: filteredItems };
+    }
+    return group;
+  }).filter(group => group.items.length > 0);
+
   const handleSelect = (id: string) => {
+    if (id === "analytics") {
+      setInspectedApp(null);
+    }
+    if (id === "p-apply") {
+      setApplicationSubmitted(false);
+      setAppForm({
+        companyName: "",
+        appName: "",
+        packageName: "",
+        platform: "Android / iOS",
+        monthlyVolume: "1M - 10M txns/month",
+        interventionPolicy: "Advisory (Non-blocking advice)",
+        webhookUrl: "",
+        contactEmail: "",
+      });
+    }
     if (id === "search") {
       setIsSearchOpen(true);
       return;
@@ -644,8 +699,7 @@ export function CompanyDashboard() {
       secretKey: `pp_sec_test_${Math.random().toString(36).substring(2, 14)}`,
     };
 
-    setWorkspaces([newCompany, ...workspaces]);
-    setActiveWorkspace(newCompany.name);
+    setWorkspaces([...workspaces, newCompany]);
     setCreatedApp(newCompany);
     setApplicationSubmitted(true);
   };
@@ -664,7 +718,10 @@ export function CompanyDashboard() {
           <WorkspaceSwitcher
             workspaces={workspaces}
             selected={activeWorkspace}
-            onSelect={setActiveWorkspace}
+            onSelect={(name) => {
+              setActiveWorkspace(name);
+              setInspectedApp(null);
+            }}
             onOpenApply={() => {
               setActiveId("p-apply");
               setApplicationSubmitted(false);
@@ -673,7 +730,7 @@ export function CompanyDashboard() {
 
           {/* Navigation Groups */}
           <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] flex flex-col gap-4 mt-1">
-            {mockNavGroups.map((group, idx) => (
+            {displayNavGroups.map((group, idx) => (
               <div key={idx} className="flex flex-col gap-0.5">
                 {group.heading && (
                   <span className="px-2.5 mb-1 text-[11px] font-semibold tracking-wider text-muted-foreground/50 uppercase">
@@ -780,6 +837,17 @@ export function CompanyDashboard() {
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
+                  {inspectedApp && activeWorkspace === "PausePay Admin" && (
+                    <button
+                      onClick={() => {
+                        setInspectedApp(null);
+                        setActiveId("projects");
+                      }}
+                      className="px-2 py-1 text-[11px] font-medium bg-white/10 hover:bg-white/15 text-white rounded-md transition-all pressable mr-2"
+                    >
+                      &larr; Back to Projects
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={handleSimulateNewEvent}
@@ -801,16 +869,16 @@ export function CompanyDashboard() {
                 <div className="h-32 bg-[#16171a] rounded-xl border border-white/[0.08] shadow-sm p-5 flex flex-col justify-between hover:border-white/15 transition-all">
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span className="font-semibold uppercase tracking-wider text-[11px]">
-                      Protected Volume ({activeWorkspace})
+                      Protected Volume ({targetStatsName === "PausePay Admin" ? "Network Total" : targetStatsName})
                     </span>
                     <CreditCard size={15} className="text-muted-foreground/60" />
                   </div>
                   <div>
                     <div className="text-2xl lg:text-3xl font-bold tracking-tight text-white">
-                      ₹4,820.5 Cr
+                      {activeStats.volume}
                     </div>
                     <p className="text-[11px] text-emerald-400 mt-1 flex items-center gap-1">
-                      <span>↑ 18.4%</span>
+                      <span>{activeStats.growth}</span>
                       <span className="text-muted-foreground">evaluated pre-PIN transactions</span>
                     </p>
                   </div>
@@ -826,7 +894,7 @@ export function CompanyDashboard() {
                   </div>
                   <div>
                     <div className="text-2xl lg:text-3xl font-bold tracking-tight text-white">
-                      142,890
+                      {activeStats.scams}
                     </div>
                     <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1.5">
                       <span className="text-emerald-400 font-medium">99.4% precision</span>
@@ -870,7 +938,11 @@ export function CompanyDashboard() {
 
                 {/* The Transaction Rows */}
                 <div className="flex flex-col gap-2">
-                  {transactions.map((row) => {
+                  {activeStats.txCount === 0 ? (
+                    <div className="text-center py-10 text-muted-foreground text-sm border border-dashed border-white/10 rounded-xl bg-white/[0.02]">
+                      No transactions evaluated yet. Ensure your API key is integrated correctly.
+                    </div>
+                  ) : transactions.slice(0, activeStats.txCount).map((row) => {
                     const isExpanded = expandedRowId === row.id;
                     const payeeInitial = row.payee.charAt(0).toLowerCase();
                     return (
@@ -1137,8 +1209,82 @@ export function CompanyDashboard() {
             </div>
           )}
 
-          {/* VIEW 3: APPLY FOR CUSTOM API */}
-          {(activeId === "p-apply" || activeId === "projects" || activeId === "p-active") && (
+          {/* VIEW 3: ACTIVE APPS */}
+          {(activeId === "projects" || activeId === "p-active") && (
+            <div className="max-w-6xl mx-auto space-y-5 animate-tab-enter">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-white">Active Apps</h2>
+                  <p className="text-xs text-muted-foreground">
+                    Current applications using the PausePay verification layer API.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveId("p-apply");
+                    setApplicationSubmitted(false);
+                  }}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-black hover:bg-white/90 pressable"
+                >
+                  + Add New App
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {workspaces.map((app) => (
+                  <div key={app.id} className="p-5 bg-[#16171a] rounded-xl border border-white/[0.08] hover:border-white/15 transition-all flex flex-col justify-between">
+                    <div>
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-[8px] bg-white flex items-center justify-center p-1.5 shrink-0">
+                            {app.name === "Google Pay" ? (
+                              <GoogleGLogo className="w-full h-full" />
+                            ) : (
+                              <span className="font-bold text-black text-lg">{app.name.charAt(0)}</span>
+                            )}
+                          </div>
+                          <div className="overflow-hidden">
+                            <h3 className="font-semibold text-white truncate">{app.name}</h3>
+                            <div className="text-xs text-muted-foreground font-mono mt-0.5 truncate">{app.packageName}</div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="space-y-2 mt-4 text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">Status</span>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${app.status.includes("Active") ? "bg-emerald-500/20 text-emerald-400" : "bg-amber-500/20 text-amber-400"}`}>
+                            {app.status.toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">Plan</span>
+                          <span className="text-white font-medium">{app.plan}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">API Key</span>
+                          <code className="text-white font-mono bg-white/[0.04] px-1.5 py-0.5 rounded truncate max-w-[120px]">
+                            {app.apiKey}
+                          </code>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-5 pt-4 border-t border-white/[0.06] flex gap-2">
+                      <button onClick={() => { setInspectedApp(app.name); setActiveId("analytics"); }} className="flex-1 py-2 text-xs font-semibold bg-white/10 hover:bg-white/15 text-white rounded-lg pressable transition-colors">
+                        View Analytics
+                      </button>
+                      <button onClick={() => { setActiveWorkspace(app.name); setActiveId("api"); }} className="flex-1 py-2 text-xs font-semibold bg-white/5 hover:bg-white/10 text-white rounded-lg pressable transition-colors">
+                        Manage Keys
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* VIEW 4: APPLY FOR CUSTOM API */}
+          {activeId === "p-apply" && (
             <div className="max-w-3xl mx-auto space-y-5 animate-tab-enter">
               <div className="space-y-1">
                 <h2 className="text-xl font-bold text-white">
@@ -1312,14 +1458,20 @@ export function CompanyDashboard() {
                   <div className="flex gap-3 pt-2">
                     <button
                       type="button"
-                      onClick={() => setActiveId("analytics")}
+                      onClick={() => {
+                        setInspectedApp(createdApp?.name || null);
+                        setActiveId("analytics");
+                      }}
                       className="px-4 py-2 rounded-lg text-xs font-semibold bg-white text-black hover:bg-white/90 shadow-sm pressable"
                     >
                       View in Analytics Stream
                     </button>
                     <button
                       type="button"
-                      onClick={() => setActiveId("api")}
+                      onClick={() => {
+                        setActiveWorkspace(createdApp?.name || "");
+                        setActiveId("api");
+                      }}
                       className="px-4 py-2 rounded-lg text-xs font-semibold bg-white/10 text-white hover:bg-white/15 pressable"
                     >
                       API Documentation
