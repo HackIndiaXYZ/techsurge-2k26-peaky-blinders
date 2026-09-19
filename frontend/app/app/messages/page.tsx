@@ -80,7 +80,7 @@ export default function MessagesPage() {
                 </span>
                 <span className="conv-row__body">
                   <span className="conv-row__name">
-                    {conv.name}
+                    <span className="conv-row__label">{conv.name}</span>
                     {conv.kind === "unknown" && <span className="risk-pill risk-pill--none">Unknown sender</span>}
                   </span>
                   <span className="conv-row__preview">{conv.preview}</span>
