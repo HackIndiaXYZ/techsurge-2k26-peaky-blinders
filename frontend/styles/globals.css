@@ -83,11 +83,17 @@ button,
   outline-offset: 4px;
 }
 
-h1,
-h2,
-h3,
-p {
-  margin-block: 0;
+/* Kept in `base` on purpose. Unlayered CSS outranks every Tailwind layer, so
+   as a bare rule this silently zeroed `mt-*` / `mb-*` utilities on these
+   elements everywhere in the app. In `base` it still resets browser defaults
+   but yields to a utility that asks for a margin. */
+@layer base {
+  h1,
+  h2,
+  h3,
+  p {
+    margin-block: 0;
+  }
 }
 
 h1,

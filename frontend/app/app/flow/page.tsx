@@ -32,7 +32,7 @@ export default function FlowHomePage() {
 
         {/* Demo Entry Point CTA */}
         <div 
-          onClick={() => router.push("/app/messages")}
+          onClick={() => router.push("/app/inbox")}
           className="bg-white border-2 border-indigo-100 rounded-2xl p-4 shadow-sm active:scale-[0.98] transition-transform cursor-pointer"
         >
           <div className="flex items-start gap-4">
@@ -90,7 +90,7 @@ export default function FlowHomePage() {
 
       {/* Footer Navigation */}
       <div className="mt-auto bg-white border-t border-zinc-200 flex justify-around p-3 pb-6">
-        <Link href="/app/pay/home" className="flex flex-col items-center gap-1 text-indigo-600">
+        <Link href="/app/flow" className="flex flex-col items-center gap-1 text-indigo-600">
           <Building2 size={20} fill="currentColor" className="opacity-20" />
           <span className="text-[10px] font-bold">Home</span>
         </Link>
@@ -98,7 +98,7 @@ export default function FlowHomePage() {
           <History size={20} />
           <span className="text-[10px] font-medium">History</span>
         </div>
-        <Link href="/app/activity" className="flex flex-col items-center gap-1 text-zinc-400">
+        <Link href="/app/pausepay/activity" className="flex flex-col items-center gap-1 text-zinc-400">
           <ShieldCheck size={20} />
           <span className="text-[10px] font-medium">Activity</span>
         </Link>

@@ -74,7 +74,7 @@ export default function MessagesPage() {
           const last = conv.messages[conv.messages.length - 1];
           return (
             <li key={conv.id}>
-              <Link className="conv-row" href={`/app/messages/${conv.id}`}>
+              <Link className="conv-row" href={`/app/inbox/${conv.id}`}>
                 <span className={`avatar avatar--${conv.kind}`} aria-hidden="true">
                   {initials(conv.name)}
                 </span>

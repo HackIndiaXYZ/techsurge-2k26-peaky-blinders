@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function ScenariosPage() {
-  redirect("/app/pay");
+  redirect("/app/flow/pay");
 }

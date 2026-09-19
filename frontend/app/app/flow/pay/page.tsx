@@ -240,10 +240,10 @@ function PayFlow() {
         </p>
         
         <div className="mt-auto w-full space-y-3">
-          <button type="button" className="w-full bg-white text-zinc-900 font-bold py-3.5 rounded-xl border border-zinc-200 shadow-sm active:bg-zinc-50 transition-colors" onClick={() => router.push("/app/messages")}>
+          <button type="button" className="w-full bg-white text-zinc-900 font-bold py-3.5 rounded-xl border border-zinc-200 shadow-sm active:bg-zinc-50 transition-colors" onClick={() => router.push("/app/inbox")}>
             Start over
           </button>
-          <Link href="/app/activity" className="block w-full bg-transparent text-indigo-600 font-semibold py-3.5 rounded-xl active:bg-indigo-50/50 transition-colors">
+          <Link href="/app/pausepay/activity" className="block w-full bg-transparent text-indigo-600 font-semibold py-3.5 rounded-xl active:bg-indigo-50/50 transition-colors">
             View activity
           </Link>
         </div>

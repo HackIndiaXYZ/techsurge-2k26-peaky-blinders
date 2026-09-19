@@ -8,7 +8,7 @@ import { AnalysisResult } from "@/components/risk/AnalysisResult";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { ApiUnavailableError, analyzeMessage, getConversations } from "@/lib/api";
 import type { AnalyzeMessageResponse, Conversation, SimMessage } from "@/lib/types";
-import { formatInr } from "@/lib/utils";
+import { displayIdentifier, formatInr } from "@/lib/utils";
 
 type MessageState = { status: "checking" } | { status: "done"; result: AnalyzeMessageResponse } | { status: "down" };
 
@@ -29,7 +29,7 @@ function payHref(result: AnalyzeMessageResponse, conversation: Conversation): st
   if (result.entities.amount) params.set("amount", String(result.entities.amount));
   // Only a saved contact's name is trusted enough to prefill; unknown senders stay unnamed.
   if (conversation.kind !== "unknown" && to === conversation.handle) params.set("name", conversation.name);
-  return `/app/pay?${params.toString()}`;
+  return `/app/flow/pay?${params.toString()}`;
 }
 
 export default function ThreadPage() {
@@ -95,7 +95,7 @@ export default function ThreadPage() {
           <WifiOff size={16} aria-hidden="true" />
           <span>Conversation unavailable. Check that the backend is running.</span>
         </p>
-        <Link className="link-button" href="/app/messages">
+        <Link className="link-button" href="/app/inbox">
           <ArrowLeft size={14} aria-hidden="true" /> Back to messages
         </Link>
       </main>
@@ -105,7 +105,7 @@ export default function ThreadPage() {
   return (
     <main className="app-content app-content--flush">
       <div className="thread-header">
-        <button type="button" className="icon-button" onClick={() => router.push("/app/messages")} aria-label="Back to messages">
+        <button type="button" className="icon-button" onClick={() => router.push("/app/inbox")} aria-label="Back to messages">
           <ArrowLeft size={20} aria-hidden="true" />
         </button>
         <span className={`avatar avatar--${conversation.kind}`} aria-hidden="true">

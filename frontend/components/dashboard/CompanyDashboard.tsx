@@ -348,7 +348,7 @@ export function CompanyDashboard() {
                          <div className="text-white/30">↓</div>
                          <div className="px-3 py-1.5 rounded bg-white/5 border border-white/10">User Decision</div>
                       </div>
-                      <Link href="/app/messages" className="mt-6 inline-flex items-center justify-center h-9 w-full bg-white text-black text-[13px] font-medium rounded-md hover:bg-white/90 transition-colors">
+                      <Link href="/app/inbox" className="mt-6 inline-flex items-center justify-center h-9 w-full bg-white text-black text-[13px] font-medium rounded-md hover:bg-white/90 transition-colors">
                          Open mobile demo →
                       </Link>
                    </div>

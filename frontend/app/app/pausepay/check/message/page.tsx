@@ -92,7 +92,7 @@ export default function CheckPage() {
             <div className="button-row">
               <Link
                 className="button button--ghost button--block"
-                href={`/app/pay?to=${encodeURIComponent(payTarget)}${result.entities.amount ? `&amount=${result.entities.amount}` : ""}`}
+                href={`/app/flow/pay?to=${encodeURIComponent(payTarget)}${result.entities.amount ? `&amount=${result.entities.amount}` : ""}`}
               >
                 <Send size={15} aria-hidden="true" />
                 Simulate paying {result.entities.amount ? formatInr(result.entities.amount) : "this payee"}
