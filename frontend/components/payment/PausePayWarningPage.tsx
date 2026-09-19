@@ -1,6 +1,8 @@
 "use client";
 
-import { Check, ShieldAlert, TriangleAlert, User, MessageSquareText, BarChart2, Landmark, Link2 } from "lucide-react";
+import { Check, ChevronRight, ShieldAlert, TriangleAlert, User, MessageSquareText, BarChart2, Landmark, Link2 } from "lucide-react";
+import Link from "next/link";
+import { PausePayMark } from "@/components/brand/PausePayMark";
 import type { VerifyPayeeResponse } from "@/lib/types";
 import { displayIdentifier, formatInr } from "@/lib/utils";
 
@@ -199,6 +201,20 @@ export function PausePayWarningPage({ open, verification, busy, onGoBack, onDism
             Continue anyway
           </button>
         </div>
+
+        {/* The second level of the explanation. FLOW states the risk in plain
+            words; the full investigation — score, weighted signals, timeline —
+            lives in the PausePay app, which is where a sceptical user goes
+            next. */}
+        <Link
+          href={`/app/pausepay/check/${verification.verification_id}`}
+          className="mt-5 flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 py-3.5 text-[13px] font-semibold text-indigo-300 transition-colors active:bg-white/10"
+        >
+          <PausePayMark size={16} tone="mono" decorative />
+          View in PausePay
+          <ChevronRight size={15} aria-hidden="true" />
+        </Link>
+
         <div className="mt-6 text-center text-xs text-zinc-600">PausePay concept &middot; Simulated payment environment</div>
       </div>
     </div>

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { PausePayWarningPage } from "@/components/payment/PausePayWarningPage";
 import { ApiUnavailableError, errorMessage, recordPaymentDecision, reportFraud, verifyPayee, analyzeMessage } from "@/lib/api";
+import { useDemoSession } from "@/lib/demo-session";
 import type { VerifyPayeeResponse } from "@/lib/types";
 import { displayIdentifier, formatInr } from "@/lib/utils";
 
@@ -29,6 +30,7 @@ function looksValid(value: string): boolean {
 function PayFlow() {
   const params = useSearchParams();
   const router = useRouter();
+  const { captureAssessment, recordDecision } = useDemoSession();
   
   const [step, setStep] = useState<Step>("pay");
   const [to, setTo] = useState(params.get("to") ?? "");
@@ -82,6 +84,9 @@ function PayFlow() {
 
       await new Promise((resolve) => setTimeout(resolve, 400));
       setVerification(result);
+      // Hand the full assessment to the shared session: PausePay needs the
+      // weighted signals, which the list endpoints do not return.
+      captureAssessment(result);
       if (result.decision !== "ALLOW") {
         setWarningOpen(true);
         setStep("pay"); // return to pay state underneath the warning
@@ -98,6 +103,7 @@ function PayFlow() {
     setBusy("pay");
     try {
       await recordPaymentDecision(res.verification_id, "PAID");
+      recordDecision(res.verification_id, "PAID");
       setStep("paid");
     } catch (err) {
       setError({ message: errorMessage(err), unavailable: err instanceof ApiUnavailableError });
@@ -112,6 +118,7 @@ function PayFlow() {
     setBusy("report");
     try {
       await reportFraud({ identifier: verification.identifier, verification_id: verification.verification_id, amount: verification.amount, reason: verification.summary });
+      recordDecision(verification.verification_id, "CANCELLED_REPORTED");
       setWarningOpen(false);
       setStep("cancelled");
     } catch (err) {
@@ -126,6 +133,7 @@ function PayFlow() {
     setBusy("continue");
     try {
       await recordPaymentDecision(verification.verification_id, "CONTINUED_AFTER_WARNING");
+      recordDecision(verification.verification_id, "CONTINUED_AFTER_WARNING");
       setWarningOpen(false);
       setStep("continued");
     } catch (err) {

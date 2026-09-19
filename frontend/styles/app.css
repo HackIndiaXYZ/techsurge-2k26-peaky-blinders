@@ -21,6 +21,52 @@
   display: none;
 }
 
+/* The site's display serif belongs to the marketing pages. Inside the phone,
+   headings are the UI sans the reference screens use — and since the global
+   `h1, h2 { font-family: … }` rule is unlayered, a Tailwind `font-sans`
+   utility cannot override it. This wins on specificity instead. */
+.app-frame :is(h1, h2, h3) {
+  font-family: var(--font-body);
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+}
+
+/* The simulated phone is always light, whatever theme the surrounding site is
+   in. It is a product mockup of a real phone — every reference screen in
+   `assets/all/` is light, and a dark simulated GPay would read as a different
+   product.
+   Newer screens use literal colours, but the ones still built on design tokens
+   (the message analyser, the risk sheet, notices) would inherit `.dark` and
+   render dark-on-white. Restating the light values here keeps every screen
+   inside the frame consistent, whichever theme the site is in. */
+.dark .app-frame {
+  --color-paper: oklch(97.4% 0.012 82);
+  --color-paper-raised: oklch(99% 0.006 82);
+  --color-paper-muted: oklch(94.4% 0.014 82);
+  --color-ink: oklch(19% 0.026 253);
+  --color-ink-soft: oklch(42% 0.032 253);
+  --color-ink-muted: oklch(56% 0.025 253);
+  --color-rule: oklch(84% 0.018 253);
+  --color-rule-strong: oklch(69% 0.031 253);
+  --color-accent: oklch(49% 0.18 259);
+  --color-accent-hover: oklch(42% 0.18 259);
+  --color-accent-soft: oklch(92% 0.035 259);
+  --color-editorial: oklch(43% 0.09 157);
+  --color-editorial-soft: oklch(92% 0.025 157);
+  --color-risk: oklch(55% 0.19 29);
+  --color-risk-soft: oklch(93% 0.038 29);
+  --color-warning: oklch(68% 0.14 75);
+  --color-warning-soft: oklch(94% 0.045 75);
+  --color-safe: oklch(49% 0.105 177);
+  --color-safe-soft: oklch(92% 0.035 177);
+  --color-focus: oklch(58% 0.2 259);
+  --color-scrim: oklch(15% 0.02 253 / 0.45);
+  --color-selection: oklch(85% 0.08 75);
+  --shadow-raised: 0 1px 2px oklch(19% 0.026 253 / 0.06);
+}
+
 .app-frame {
   position: relative;
   display: flex;
@@ -30,7 +76,9 @@
   height: 100%;
   min-height: 0;
   overflow: hidden;
-  background: var(--color-paper-raised);
+  color-scheme: light;
+  background: #fff;
+  color: #18181b;
 }
 
 .app-screen {

@@ -14,6 +14,12 @@ const TONE: Record<RiskBand, { label: string; ring: string; text: string; chip: 
   LOW: { label: "Low risk", ring: "stroke-emerald-500", text: "text-emerald-600", chip: "bg-emerald-50 text-emerald-700" },
 };
 
+/** Backend timeline steps arrive as RISK_SIGNALS_EVALUATED; show them as prose. */
+function humaniseStep(step: string): string {
+  const words = step.replace(/_/g, " ").toLowerCase();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
 /** Score dial — the "86 / 100" read from the concept. */
 function ScoreDial({ score, band }: { score: number; band: RiskBand }) {
   const r = 52;
@@ -155,7 +161,11 @@ export default function CheckDetailPage() {
                   </span>
                   <span className="min-w-0">
                     <span className="block text-[13.5px] font-semibold leading-snug text-zinc-900">{s.label}</span>
-                    {s.evidence && <span className="block text-[12px] leading-snug text-zinc-500">{s.evidence}</span>}
+                    {/* Several signals ship the same string as label and evidence;
+                        repeating it adds nothing. */}
+                    {s.evidence && s.evidence.trim() !== s.label.trim() && (
+                      <span className="block text-[12px] leading-snug text-zinc-500">{s.evidence}</span>
+                    )}
                   </span>
                 </li>
               ))}
@@ -191,7 +201,7 @@ export default function CheckDetailPage() {
                   <span className="shrink-0 font-mono text-[11px] tabular-nums text-zinc-400">
                     {new Date(event.timestamp).toLocaleTimeString([], { hour12: false })}
                   </span>
-                  <span className="text-[13px] text-zinc-800">{event.step}</span>
+                  <span className="text-[13px] text-zinc-800">{humaniseStep(event.step)}</span>
                 </li>
               ))}
             </ol>
