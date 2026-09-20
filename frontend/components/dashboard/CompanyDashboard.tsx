@@ -45,7 +45,6 @@ const mockNavGroups: NavGroupData[] = [
       { id: "applications", title: "Applications", icon: Blocks },
       { id: "apikeys", title: "API Keys", icon: KeyRound },
       { id: "evaluations", title: "Evaluation Stream", icon: Activity },
-      { id: "documentation", title: "Documentation", icon: Code2 },
     ],
   }
 ];
@@ -368,9 +367,9 @@ export function CompanyDashboard() {
                          <div className="text-emerald-400/70">↓ Risk + Evidence</div>
                          <div className="px-3 py-1.5 rounded bg-white/5 border border-white/10">Your UI</div>
                       </div>
-                      <button onClick={() => setActiveId("documentation")} className="mt-4 inline-flex items-center justify-center h-9 w-full bg-white/10 text-white text-[13px] font-medium rounded-md hover:bg-white/15 transition-colors border border-white/10">
+                      <Link href="/docs" className="mt-4 inline-flex items-center justify-center h-9 w-full bg-white/10 text-white text-[13px] font-medium rounded-md hover:bg-white/15 transition-colors border border-white/10">
                          View API integration →
-                      </button>
+                      </Link>
                    </div>
                 </div>
 
@@ -565,128 +564,6 @@ export function CompanyDashboard() {
               </div>
             )}
 
-            {activeId === "documentation" && (
-              <div className="space-y-12 animate-fade-in pt-2 pb-12">
-                <div>
-                  <h2 className="text-2xl font-semibold mb-2 text-white">API Reference</h2>
-                  <p className="text-[15px] text-white/50 max-w-2xl">
-                    Integrate PausePay into your payment authorization flow. The API is designed to be called synchronously before a payment is committed.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 xl:grid-cols-12 gap-12">
-                   {/* Left Column: Description & Params */}
-                   <div className="xl:col-span-7 space-y-8">
-                      <div>
-                         <div className="flex items-center gap-3 mb-4">
-                            <span className="px-2.5 py-1 text-[11px] font-bold bg-blue-500/20 text-blue-400 rounded">POST</span>
-                            <code className="text-sm font-mono text-white/80">https://api.pausepay.io/v1/risk/evaluate</code>
-                         </div>
-                         <h3 className="text-lg font-medium text-white mb-2">Evaluate Transaction</h3>
-                         <p className="text-[14px] text-white/60 leading-relaxed">
-                            Evaluates a pending transaction against the PausePay Risk Engine. Send all available context, including the recipient identifier and any relevant communication history.
-                         </p>
-                      </div>
-
-                      <div>
-                         <h4 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-4 border-b border-white/10 pb-2">Request Body Schema</h4>
-                         <div className="space-y-4">
-                            <div className="grid grid-cols-12 gap-4">
-                               <div className="col-span-12 sm:col-span-4 font-mono text-[13px] text-white/80">amount <span className="text-red-400/80">*</span></div>
-                               <div className="col-span-12 sm:col-span-8 text-[13px] text-white/50">
-                                  <span className="text-white/30 text-xs uppercase mr-2">number</span>
-                                  The transaction amount in the smallest currency unit.
-                               </div>
-                            </div>
-                            <div className="grid grid-cols-12 gap-4 border-t border-white/5 pt-4">
-                               <div className="col-span-12 sm:col-span-4 font-mono text-[13px] text-white/80">currency <span className="text-red-400/80">*</span></div>
-                               <div className="col-span-12 sm:col-span-8 text-[13px] text-white/50">
-                                  <span className="text-white/30 text-xs uppercase mr-2">string</span>
-                                  3-letter ISO currency code (e.g., <code className="text-white/70 bg-white/5 px-1 py-0.5 rounded">INR</code>).
-                               </div>
-                            </div>
-                            <div className="grid grid-cols-12 gap-4 border-t border-white/5 pt-4">
-                               <div className="col-span-12 sm:col-span-4 font-mono text-[13px] text-white/80">payee <span className="text-red-400/80">*</span></div>
-                               <div className="col-span-12 sm:col-span-8 text-[13px] text-white/50">
-                                  <span className="text-white/30 text-xs uppercase mr-2">object</span>
-                                  Information about the recipient, including <code className="text-white/70 bg-white/5 px-1 py-0.5 rounded">name</code> and <code className="text-white/70 bg-white/5 px-1 py-0.5 rounded">vpa</code>.
-                               </div>
-                            </div>
-                            <div className="grid grid-cols-12 gap-4 border-t border-white/5 pt-4">
-                               <div className="col-span-12 sm:col-span-4 font-mono text-[13px] text-white/80">context.message</div>
-                               <div className="col-span-12 sm:col-span-8 text-[13px] text-white/50">
-                                  <span className="text-white/30 text-xs uppercase mr-2">string</span>
-                                  Crucial surrounding context to drastically improve risk detection accuracy.
-                               </div>
-                            </div>
-                            <div className="grid grid-cols-12 gap-4 border-t border-white/5 pt-4">
-                               <div className="col-span-12 sm:col-span-4 font-mono text-[13px] text-white/80">context.message_timestamp</div>
-                               <div className="col-span-12 sm:col-span-8 text-[13px] text-white/50">
-                                  <span className="text-white/30 text-xs uppercase mr-2">string</span>
-                                  ISO 8601 timestamp of the communication.
-                               </div>
-                            </div>
-                         </div>
-                      </div>
-                   </div>
-
-                   {/* Right Column: Code Snippets */}
-                   <div className="xl:col-span-5 space-y-6">
-                      <div className="rounded-xl border border-white/10 bg-[#101114] overflow-hidden shadow-xl">
-                         <div className="flex items-center px-4 py-2 border-b border-white/5 bg-white/[0.02]">
-                            <span className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">Example Request</span>
-                         </div>
-                         <div className="p-4 font-mono text-[12px] leading-relaxed overflow-x-auto text-white/80">
-<pre>
-<span className="text-blue-300">curl</span> -X POST https://api.pausepay.io/v1/risk/evaluate \{"\n"}
-  -H <span className="text-emerald-300">"Authorization: Bearer pp_test_8A2..."</span> \{"\n"}
-  -H <span className="text-emerald-300">"Content-Type: application/json"</span> \{"\n"}
-  -d <span className="text-orange-300">'{'{'}</span>{"\n"}
-  <span className="text-blue-300">"amount"</span>: <span className="text-purple-400">5000</span>,{"\n"}
-  <span className="text-blue-300">"currency"</span>: <span className="text-emerald-300">"INR"</span>,{"\n"}
-  <span className="text-blue-300">"payee"</span>: {'{'}{"\n"}
-    <span className="text-blue-300">"name"</span>: <span className="text-emerald-300">"Rahul Sharma"</span>,{"\n"}
-    <span className="text-blue-300">"vpa"</span>: <span className="text-emerald-300">"rahul@upi"</span>{"\n"}
-  {'}'},{"\n"}
-  <span className="text-blue-300">"context"</span>: {'{'}{"\n"}
-    <span className="text-blue-300">"message"</span>: <span className="text-emerald-300">"I accidentally sent ₹5000. Please send it back."</span>,{"\n"}
-    <span className="text-blue-300">"message_timestamp"</span>: <span className="text-emerald-300">"2026-09-19T09:40:12Z"</span>{"\n"}
-  {'}'}{"\n"}
-<span className="text-orange-300">{'}'}'</span>{"\n"}
-</pre>
-                         </div>
-                      </div>
-
-                      <div className="rounded-xl border border-white/10 bg-[#101114] overflow-hidden shadow-xl">
-                         <div className="flex items-center px-4 py-2 border-b border-white/5 bg-white/[0.02]">
-                            <span className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">Example Response</span>
-                         </div>
-                         <div className="p-4 font-mono text-[12px] leading-relaxed overflow-x-auto text-white/80">
-<pre>
-{'{'}{"\n"}
-  <span className="text-blue-300">"risk_score"</span>: <span className="text-purple-400">86</span>,{"\n"}
-  <span className="text-blue-300">"risk_band"</span>: <span className="text-emerald-300">"HIGH"</span>,{"\n"}
-  <span className="text-blue-300">"action"</span>: <span className="text-emerald-300">"WARN"</span>,{"\n"}
-  <span className="text-blue-300">"evidence"</span>: [{"\n"}
-    <span className="text-emerald-300">"No matching incoming credit found"</span>,{"\n"}
-    <span className="text-emerald-300">"First payment to recipient"</span>,{"\n"}
-    <span className="text-emerald-300">"Payment closely followed message"</span>,{"\n"}
-    <span className="text-emerald-300">"Amount matches requested amount"</span>{"\n"}
-  ]{"\n"}
-{'}'}{"\n"}
-</pre>
-                         </div>
-                      </div>
-                   </div>
-                </div>
-                
-                {/*<div className="pt-4 border-t border-white/10">
-                   <a href="/docs" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 font-medium">
-                      View full API documentation <ChevronRight size={16} />
-                   </a>
-                </div>*/}
-              </div>
-            )}
           </div>
         </div>
       </main>
