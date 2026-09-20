@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Check, ChevronRight, ShieldAlert, TriangleAlert, User, MessageSquareText, BarChart2, Landmark, Link2 } from "lucide-react";
 import Link from "next/link";
 import { PausePayMark } from "@/components/brand/PausePayMark";
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export function PausePayWarningPage({ open, verification, busy, onGoBack, onDismiss, onContinue }: Props) {
+  const [showConfirm, setShowConfirm] = useState(false);
   if (!verification) return null;
   
   const high = verification.decision === "INTERRUPT";
@@ -29,7 +31,10 @@ export function PausePayWarningPage({ open, verification, busy, onGoBack, onDism
     >
       {/* Top Navigation */}
       <div className="px-5 pt-14 pb-4 flex items-center">
-        <button onClick={onDismiss} className="p-2 -ml-2 text-zinc-400">
+        <button onClick={() => {
+          if (showConfirm) setShowConfirm(false);
+          else onDismiss();
+        }} className="p-2 -ml-2 text-zinc-400">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
         </button>
       </div>
@@ -181,41 +186,83 @@ export function PausePayWarningPage({ open, verification, busy, onGoBack, onDism
         </details>
 
         {/* Actions */}
-        <div className="space-y-3">
-          <button 
-            type="button" 
-            onClick={onGoBack}
-            disabled={busy !== null}
-            className="w-full bg-white text-zinc-900 font-bold py-4 rounded-xl active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
-          >
-            {busy === "report" ? <span className="w-5 h-5 border-2 border-zinc-900/30 border-t-zinc-900 rounded-full animate-spin" /> : null}
-            Go Back
-          </button>
-          <button 
-            type="button"
-            onClick={onContinue}
-            disabled={busy !== null}
-            className="w-full bg-transparent text-zinc-400 font-semibold py-4 rounded-xl active:text-zinc-300 transition-colors flex items-center justify-center gap-2"
-          >
-            {busy === "continue" ? <span className="w-5 h-5 border-2 border-zinc-400/30 border-t-zinc-400 rounded-full animate-spin" /> : null}
-            Continue anyway
-          </button>
-        </div>
+        {!showConfirm ? (
+          <div className="space-y-4 pt-4">
+            <button 
+              type="button" 
+              onClick={onGoBack}
+              disabled={busy !== null}
+              className="w-full bg-white text-zinc-900 font-bold py-4 rounded-xl active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+            >
+              {busy === "report" ? <span className="w-5 h-5 border-2 border-zinc-900/30 border-t-zinc-900 rounded-full animate-spin" /> : null}
+              Go back
+            </button>
+            <button 
+              type="button"
+              onClick={() => setShowConfirm(true)}
+              disabled={busy !== null}
+              className="w-full bg-transparent text-zinc-400 font-medium py-2 rounded-xl active:text-zinc-300 transition-colors flex items-center justify-center gap-2 underline underline-offset-4 decoration-zinc-600"
+            >
+              Continue anyway
+            </button>
 
-        {/* The second level of the explanation. FLOW states the risk in plain
-            words; the full investigation — score, weighted signals, timeline —
-            lives in the PausePay app, which is where a sceptical user goes
-            next. */}
-        <Link
-          href={`/app/pausepay/check/${verification.verification_id}`}
-          className="mt-5 flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 py-3.5 text-[13px] font-semibold text-indigo-300 transition-colors active:bg-white/10"
-        >
-          <PausePayMark size={16} tone="mono" decorative />
-          View in PausePay
-          <ChevronRight size={15} aria-hidden="true" />
-        </Link>
+            {/* The second level of the explanation. FLOW states the risk in plain
+                words; the full investigation — score, weighted signals, timeline —
+                lives in the PausePay app, which is where a sceptical user goes
+                next. */}
+            <Link
+              href={`/app/pausepay/check/${verification.verification_id}`}
+              className="mt-5 flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 py-3.5 text-[13px] font-semibold text-indigo-300 transition-colors active:bg-white/10"
+            >
+              <PausePayMark size={16} tone="mono" decorative />
+              View in PausePay
+              <ChevronRight size={15} aria-hidden="true" />
+            </Link>
+          </div>
+        ) : (
+          <div className="fixed inset-0 z-[60] bg-[#0F0F12] p-6 flex flex-col justify-end animate-in fade-in slide-in-from-bottom-8 duration-300">
+             <div className="flex-1 flex flex-col items-center justify-center text-center">
+                <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center mb-6 border border-amber-500/20">
+                  <TriangleAlert size={28} className="text-amber-500" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-3">Continue despite warning?</h3>
+                <p className="text-sm text-zinc-400 mb-8 max-w-[260px] mx-auto">
+                  PausePay found several unusual signals around this payment.
+                </p>
+                
+                <div className="w-full max-w-[260px] mx-auto bg-white/5 border border-white/10 rounded-2xl p-5 mb-8">
+                  <div className="text-2xl font-light text-white mb-2">{formatInr(verification.amount)}</div>
+                  <div className="font-semibold text-zinc-200">{verification.payee_name || "Payee"}</div>
+                  <div className="text-xs text-zinc-400 mt-1">{displayIdentifier(verification.identifier)}</div>
+                </div>
 
-        <div className="mt-6 text-center text-xs text-zinc-600">PausePay concept &middot; Simulated payment environment</div>
+                <p className="text-sm text-amber-500/90 font-medium max-w-[260px] mx-auto leading-relaxed">
+                  You can continue, but the payment will be made despite the warning.
+                </p>
+             </div>
+             
+             <div className="space-y-3 pb-6">
+               <button 
+                 type="button"
+                 onClick={onContinue}
+                 disabled={busy !== null}
+                 className="w-full bg-white/10 text-white font-bold py-4 rounded-xl border border-white/10 active:bg-white/15 transition-colors flex items-center justify-center gap-2"
+               >
+                 {busy === "continue" ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
+                 Continue with payment
+               </button>
+               <button 
+                 type="button" 
+                 onClick={() => setShowConfirm(false)}
+                 disabled={busy !== null}
+                 className="w-full bg-white text-zinc-900 font-bold py-4 rounded-xl active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+               >
+                 Go back
+               </button>
+             </div>
+          </div>
+        )}
+        <div className="mt-8 text-center text-xs text-zinc-600">PausePay concept &middot; Simulated payment environment</div>
       </div>
     </div>
   );

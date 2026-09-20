@@ -44,8 +44,7 @@ const mockNavGroups: NavGroupData[] = [
       { id: "overview", title: "Overview", icon: LayoutDashboard },
       { id: "applications", title: "Applications", icon: Blocks },
       { id: "apikeys", title: "API Keys", icon: KeyRound },
-      { id: "evaluations", title: "Evaluations", icon: Activity },
-      { id: "apilogs", title: "API Logs", icon: Terminal },
+      { id: "evaluations", title: "Evaluation Stream", icon: Activity },
       { id: "documentation", title: "Documentation", icon: Code2 },
     ],
   }
@@ -277,16 +276,16 @@ export function CompanyDashboard() {
           isOpen ? "w-[260px]" : "w-0 -translate-x-full"
         }`}
       >
-        <div className="h-12 flex items-center px-4 border-b border-white/5 shrink-0">
-          <div className="flex items-center gap-2">
-             <div className="w-5 h-5 rounded-[4px] bg-white flex items-center justify-center shrink-0">
-                <span className="font-bold text-[11px] text-black">P</span>
+        <div className="h-20 flex items-center px-6 border-b border-white/5 shrink-0">
+          <div className="flex items-center gap-3">
+             <div className="w-6 h-6 rounded-[5px] bg-white flex items-center justify-center shrink-0">
+                <span className="font-bold text-xs text-black">P</span>
              </div>
-             <span className="font-semibold text-[13px] tracking-wide text-white">PausePay Partner</span>
+             <span className="font-semibold text-[15px] tracking-wide text-white">PausePay Partner</span>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6 flex flex-col no-scrollbar">
+        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6 flex flex-col">
           {mockNavGroups.map((group, i) => (
             <div key={i} className="flex flex-col gap-1">
               {group.heading && (
@@ -307,44 +306,49 @@ export function CompanyDashboard() {
         </div>
       </aside>
 
-      <main className="flex-1 flex flex-col min-w-0 bg-[#0E0E10] relative">
-        <header className="h-12 flex items-center justify-between px-4 border-b border-white/5 shrink-0 bg-[#0E0E10]/80 backdrop-blur-md z-10">
-          <div className="flex items-center gap-3">
+      <main className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden bg-[#0E0E10] relative">
+        <header className="h-20 flex items-center justify-between px-8 border-b border-white/5 shrink-0 bg-[#0E0E10]/80 backdrop-blur-md z-10">
+          <div className="flex items-center gap-4">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-1.5 -ml-1.5 rounded-md text-white/50 hover:bg-white/5 hover:text-white transition-colors"
+              className="p-2 -ml-2 rounded-md text-white/50 hover:bg-white/5 hover:text-white transition-colors"
             >
-              {isOpen ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />}
+              {isOpen ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
             </button>
-            <div className="h-3.5 w-px bg-white/10" />
-            <h1 className="text-[13px] font-medium tracking-wide">
+            <div className="h-5 w-px bg-white/10" />
+            <h1 className="text-xl font-semibold tracking-tight text-white">
               {allItems.find((i) => i.id === activeId)?.title}
             </h1>
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-8 no-scrollbar">
+        <div className="flex-1 overflow-y-auto p-8">
           <div className="max-w-4xl mx-auto pb-20">
             {activeId === "overview" && (
               <div className="space-y-8 animate-fade-in">
                 <div>
                   <h2 className="text-xl font-medium tracking-tight mb-2 text-white">Evaluate payment context<br/>before completion.</h2>
                   <p className="text-white/50 text-sm">
-                    PausePay connects to your payment flow to detect manipulation and anomalies before money leaves.
+                    Combine payment context and surrounding signals before money leaves the account.
                   </p>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                   <div className="p-6 rounded-xl border border-white/10 bg-[#15161A] flex flex-col">
-                      <h3 className="text-xs font-semibold mb-6 text-white/70 tracking-wider uppercase">User Experience</h3>
-                      <div className="flex-1 flex flex-col items-center justify-center font-mono text-xs text-white/60 my-2 space-y-2">
+                   <div className="p-5 rounded-xl border border-white/10 bg-[#15161A] flex flex-col">
+                      <h3 className="text-xs font-semibold mb-2 text-white/70 tracking-wider uppercase">User Experience</h3>
+                      <p className="text-[13px] text-white/50 mb-6 leading-relaxed">Context starts in communication and follows the user into payment.</p>
+                      
+                      <div className="flex-1 flex flex-col items-center justify-center font-mono text-xs text-white/60 space-y-2">
                          <div className="px-3 py-1.5 rounded bg-white/5 border border-white/10">Inbox</div>
                          <div className="text-white/30">↓</div>
                          <div className="px-3 py-1.5 rounded bg-white/5 border border-white/10">FLOW Payment</div>
                          <div className="text-white/30">↓</div>
                          <div className="px-3 py-1.5 rounded bg-white/5 border border-white/10">PausePay Review</div>
                          <div className="text-white/30">↓</div>
-                         <div className="px-3 py-1.5 rounded bg-orange-500/10 border border-orange-500/20 text-orange-400">Risk + Evidence</div>
+                         <div className="px-3 py-2 rounded-md bg-orange-500/10 border border-orange-500/30 text-orange-400 font-bold shadow-[0_0_15px_rgba(249,115,22,0.1)] text-center leading-snug">
+                            RISK + EVIDENCE<br/>
+                            <span className="text-[10px] font-normal text-orange-400/80">HIGH · 86</span>
+                         </div>
                          <div className="text-white/30">↓</div>
                          <div className="px-3 py-1.5 rounded bg-white/5 border border-white/10">User Decision</div>
                       </div>
@@ -353,41 +357,41 @@ export function CompanyDashboard() {
                       </Link>
                    </div>
                    
-                   <div className="p-6 rounded-xl border border-white/10 bg-[#15161A] flex flex-col">
-                      <h3 className="text-xs font-semibold mb-6 text-white/70 tracking-wider uppercase">Platform Integration</h3>
-                      <div className="flex-1 flex flex-col items-center justify-center font-mono text-xs text-white/60 my-2 space-y-2">
+                   <div className="p-5 rounded-xl border border-white/10 bg-[#15161A] flex flex-col">
+                      <h3 className="text-xs font-semibold mb-2 text-white/70 tracking-wider uppercase">Platform Integration</h3>
+                      <p className="text-[13px] text-white/50 mb-6 leading-relaxed">Bring PausePay into an existing payment flow through the API.</p>
+                      
+                      <div className="flex-1 flex flex-col items-center justify-center font-mono text-xs text-white/60 space-y-2">
                          <div className="px-3 py-1.5 rounded bg-white/5 border border-white/10">Payment App</div>
                          <div className="text-blue-400/70">↓ POST /v1/risk/evaluate</div>
                          <div className="px-3 py-1.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-300">PausePay Engine</div>
                          <div className="text-emerald-400/70">↓ Risk + Evidence</div>
                          <div className="px-3 py-1.5 rounded bg-white/5 border border-white/10">Your UI</div>
                       </div>
-                      <button onClick={() => setActiveId("documentation")} className="mt-6 inline-flex items-center justify-center h-9 w-full bg-white/10 text-white text-[13px] font-medium rounded-md hover:bg-white/15 transition-colors border border-white/10">
+                      <button onClick={() => setActiveId("documentation")} className="mt-4 inline-flex items-center justify-center h-9 w-full bg-white/10 text-white text-[13px] font-medium rounded-md hover:bg-white/15 transition-colors border border-white/10">
                          View API integration →
                       </button>
                    </div>
                 </div>
 
-                <div className="space-y-3 pt-4">
-                  <div className="flex items-center justify-between">
-                     <h3 className="text-xs font-semibold text-white/70 tracking-wider uppercase">Evaluation</h3>
-                     <span className="text-[11px] text-white/40">Synthetic evaluation dataset</span>
+                <div className="space-y-4 pt-4">
+                  <div>
+                     <h3 className="text-xs font-semibold text-white/70 tracking-wider uppercase mb-1">Evaluation</h3>
+                     <p className="text-[13px] text-white/50">Synthetic evaluation dataset</p>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="p-5 rounded-xl border border-white/10 bg-white/[0.02] flex flex-col">
-                       <div className="text-2xl font-bold tracking-tight text-white">98%</div>
-                       <div className="text-sm font-medium text-white/80 mt-1">Scam F1</div>
-                       <div className="text-xs text-white/40 mt-1">52 cases</div>
+                    <div className="p-4 rounded-xl border border-white/10 bg-white/[0.02] flex flex-col">
+                       <div className="text-2xl font-bold tracking-tight text-white mb-1">98%</div>
+                       <div className="text-[13px] font-medium text-white/80">Scam F1</div>
+                       <div className="text-xs text-white/40 mt-1 leading-snug">52-message<br/>holdout</div>
                     </div>
-                    <div className="p-5 rounded-xl border border-white/10 bg-white/[0.02] flex flex-col">
-                       <div className="text-2xl font-bold tracking-tight text-white">98.1%</div>
-                       <div className="text-sm font-medium text-white/80 mt-1">Intent Acc</div>
-                       <div className="text-xs text-white/40 mt-1">holdout</div>
+                    <div className="p-4 rounded-xl border border-white/10 bg-white/[0.02] flex flex-col">
+                       <div className="text-2xl font-bold tracking-tight text-white mb-1">98.1%</div>
+                       <div className="text-[13px] font-medium text-white/80">Intent accuracy</div>
                     </div>
-                    <div className="p-5 rounded-xl border border-white/10 bg-white/[0.02] flex flex-col">
-                       <div className="text-2xl font-bold tracking-tight text-white">~2.45 ms</div>
-                       <div className="text-sm font-medium text-white/80 mt-1">Inference</div>
-                       <div className="text-xs text-white/40 mt-1">evaluation</div>
+                    <div className="p-4 rounded-xl border border-white/10 bg-white/[0.02] flex flex-col">
+                       <div className="text-2xl font-bold tracking-tight text-white mb-1">~2.45 ms</div>
+                       <div className="text-[13px] font-medium text-white/80">Inference latency</div>
                     </div>
                   </div>
                 </div>
@@ -437,16 +441,32 @@ export function CompanyDashboard() {
                      </div>
                   </div>
                 </div>
+
+                <div className="pt-8 mt-8 border-t border-white/10">
+                  <h3 className="text-xs font-semibold text-white/70 tracking-wider uppercase mb-6">Deterministic Scoring Formula</h3>
+                  
+                  <div className="p-6 rounded-xl border border-white/10 bg-[#15161A] font-mono text-sm">
+                     <div className="flex flex-col gap-4 text-white/60">
+                        <p className="text-white/80 text-[13px] font-sans">The Risk Engine is fully explainable. The score is a bounded sum of integer-weighted signals and mitigators. There is no black-box ML scoring—models only provide intent classification as inputs.</p>
+                        
+                        <div className="bg-black/50 border border-white/10 p-5 rounded-lg text-[12px] leading-relaxed text-white overflow-x-auto shadow-inner">
+                           <code>
+                              <span className="text-blue-400 font-bold">raw_score</span> = <span className="text-emerald-400">∑(signal_weights)</span> + <span className="text-emerald-400">∑(mitigator_weights)</span><br/><br/>
+                              <span className="text-blue-400 font-bold">final_score</span> = <span className="text-orange-400 font-bold">max</span>(0, <span className="text-orange-400 font-bold">min</span>(100, raw_score))<br/><br/>
+                              <span className="text-blue-400 font-bold">risk_band</span> = <br/>
+                              &nbsp;&nbsp;<span className="text-emerald-400">LOW</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if final_score ≤ 34<br/>
+                              &nbsp;&nbsp;<span className="text-yellow-400">MEDIUM</span> &nbsp;&nbsp;if final_score ≤ 64<br/>
+                              &nbsp;&nbsp;<span className="text-red-400">HIGH</span> &nbsp;&nbsp;&nbsp;&nbsp;if final_score ≥ 65
+                           </code>
+                        </div>
+                     </div>
+                  </div>
+                </div>
               </div>
             )}
 
             {activeId === "applications" && (
-              <div className="space-y-6 animate-fade-in">
-                <div>
-                  <h2 className="text-xl font-semibold mb-1">Applications</h2>
-                  <p className="text-sm text-white/50">Manage apps connected to the PausePay API.</p>
-                </div>
-                
+              <div className="space-y-6 animate-fade-in pt-2">
                 <div className="grid gap-3">
                   {DEFAULT_WORKSPACES.map((app) => (
                     <div key={app.id} className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-[#15161A]">
@@ -474,12 +494,7 @@ export function CompanyDashboard() {
             )}
 
             {activeId === "apikeys" && (
-              <div className="space-y-6 animate-fade-in">
-                <div>
-                  <h2 className="text-xl font-semibold mb-1">API Keys</h2>
-                  <p className="text-sm text-white/50">Authenticate your backend with the PausePay Risk Engine.</p>
-                </div>
-
+              <div className="space-y-6 animate-fade-in pt-2">
                 <div className="p-5 rounded-xl border border-white/10 bg-[#15161A]">
                   <div className="flex items-center justify-between mb-4">
                     <div className="text-sm font-medium">Demo Secret Key</div>
@@ -504,12 +519,8 @@ export function CompanyDashboard() {
             )}
 
             {activeId === "evaluations" && (
-              <div className="space-y-6 animate-fade-in">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-xl font-semibold mb-1">Evaluations</h2>
-                    <p className="text-sm text-white/50">Simulated Evaluation Stream</p>
-                  </div>
+              <div className="space-y-6 animate-fade-in pt-2">
+                <div className="flex items-center justify-end">
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium">
                      <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
                      {transactions[0]?.id.startsWith('live-') ? 'Live demo data' : 'Synthetic demo data'}
@@ -554,102 +565,126 @@ export function CompanyDashboard() {
               </div>
             )}
 
-            {activeId === "apilogs" && (
-              <div className="space-y-6 animate-fade-in">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-xl font-semibold mb-1">API Logs</h2>
-                    <p className="text-sm text-white/50">Recent API requests.</p>
-                  </div>
-                </div>
-                
-                <div className="rounded-xl border border-white/10 bg-[#15161A] overflow-hidden font-mono text-[12px]">
-                   <div className="p-4 border-b border-white/5 text-white/50">
-                      [2026-09-19T09:41:46.2Z] POST /v1/risk/evaluate → 200 OK (142ms)
-                   </div>
-                   <div className="p-4 border-b border-white/5 text-white/50">
-                      [2026-09-19T09:40:11.8Z] POST /v1/risk/evaluate → 200 OK (89ms)
-                   </div>
-                   <div className="p-4 border-b border-white/5 text-white/50">
-                      [2026-09-19T09:35:22.1Z] POST /v1/risk/evaluate → 200 OK (112ms)
-                   </div>
-                   <div className="p-4 border-b border-white/5 text-white/50">
-                      [2026-09-19T09:22:04.5Z] POST /v1/risk/evaluate → 200 OK (94ms)
-                   </div>
-                   <div className="p-4 text-white/50">
-                      [2026-09-19T09:15:33.2Z] POST /v1/risk/evaluate → 200 OK (105ms)
-                   </div>
-                </div>
-              </div>
-            )}
-
             {activeId === "documentation" && (
-              <div className="space-y-8 animate-fade-in">
+              <div className="space-y-12 animate-fade-in pt-2 pb-12">
                 <div>
-                  <h2 className="text-xl font-semibold mb-1">Integration Flow</h2>
-                  <p className="text-sm text-white/50 mb-6">
-                    Send payment + available context → receive risk assessment + evidence → partner decides how to intervene.
+                  <h2 className="text-2xl font-semibold mb-2 text-white">API Reference</h2>
+                  <p className="text-[15px] text-white/50 max-w-2xl">
+                    Integrate PausePay into your payment authorization flow. The API is designed to be called synchronously before a payment is committed.
                   </p>
-                  
-                  <div className="flex flex-col items-center justify-center p-8 rounded-xl border border-white/10 bg-[#15161A] mb-8 font-mono text-[11px] sm:text-sm text-white/50">
-                     <div className="px-4 py-2 bg-white/5 rounded border border-white/10 text-white">YOUR PAYMENT FLOW</div>
-                     <div className="h-6 w-px bg-white/20"></div>
-                     <div className="text-blue-400">↓ POST /v1/risk/evaluate</div>
-                     <div className="h-6 w-px bg-white/20"></div>
-                     <div className="px-4 py-2 bg-blue-500/10 rounded border border-blue-500/20 text-blue-100">PAUSEPAY ENGINE</div>
-                     <div className="h-6 w-px bg-white/20"></div>
-                     <div className="text-emerald-400">↓ RISK + EVIDENCE</div>
-                     <div className="h-6 w-px bg-white/20"></div>
-                     <div className="px-4 py-2 bg-white/5 rounded border border-white/10 text-white">YOUR UI</div>
-                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                   <div>
-                      <h3 className="text-sm font-semibold mb-3">Request Payload</h3>
-                      <div className="rounded-xl border border-white/10 bg-[#15161A] p-4 font-mono text-[13px] overflow-x-auto">
-<pre className="text-emerald-400">{`{
-  "amount": 5000,
-  "currency": "INR",
-  "payee": {
-    "name": "Rahul Sharma",
-    "vpa": "rahul@upi"
-  },
-  "context": {
-    "message": "I accidentally sent ₹5000. Please send it back.",
-    "message_timestamp": "2026-09-19T09:40:12Z"
-  }
-}`}</pre>
+                <div className="grid grid-cols-1 xl:grid-cols-12 gap-12">
+                   {/* Left Column: Description & Params */}
+                   <div className="xl:col-span-7 space-y-8">
+                      <div>
+                         <div className="flex items-center gap-3 mb-4">
+                            <span className="px-2.5 py-1 text-[11px] font-bold bg-blue-500/20 text-blue-400 rounded">POST</span>
+                            <code className="text-sm font-mono text-white/80">https://api.pausepay.io/v1/risk/evaluate</code>
+                         </div>
+                         <h3 className="text-lg font-medium text-white mb-2">Evaluate Transaction</h3>
+                         <p className="text-[14px] text-white/60 leading-relaxed">
+                            Evaluates a pending transaction against the PausePay Risk Engine. Send all available context, including the recipient identifier and any relevant communication history.
+                         </p>
+                      </div>
+
+                      <div>
+                         <h4 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-4 border-b border-white/10 pb-2">Request Body Schema</h4>
+                         <div className="space-y-4">
+                            <div className="grid grid-cols-12 gap-4">
+                               <div className="col-span-12 sm:col-span-4 font-mono text-[13px] text-white/80">amount <span className="text-red-400/80">*</span></div>
+                               <div className="col-span-12 sm:col-span-8 text-[13px] text-white/50">
+                                  <span className="text-white/30 text-xs uppercase mr-2">number</span>
+                                  The transaction amount in the smallest currency unit.
+                               </div>
+                            </div>
+                            <div className="grid grid-cols-12 gap-4 border-t border-white/5 pt-4">
+                               <div className="col-span-12 sm:col-span-4 font-mono text-[13px] text-white/80">currency <span className="text-red-400/80">*</span></div>
+                               <div className="col-span-12 sm:col-span-8 text-[13px] text-white/50">
+                                  <span className="text-white/30 text-xs uppercase mr-2">string</span>
+                                  3-letter ISO currency code (e.g., <code className="text-white/70 bg-white/5 px-1 py-0.5 rounded">INR</code>).
+                               </div>
+                            </div>
+                            <div className="grid grid-cols-12 gap-4 border-t border-white/5 pt-4">
+                               <div className="col-span-12 sm:col-span-4 font-mono text-[13px] text-white/80">payee <span className="text-red-400/80">*</span></div>
+                               <div className="col-span-12 sm:col-span-8 text-[13px] text-white/50">
+                                  <span className="text-white/30 text-xs uppercase mr-2">object</span>
+                                  Information about the recipient, including <code className="text-white/70 bg-white/5 px-1 py-0.5 rounded">name</code> and <code className="text-white/70 bg-white/5 px-1 py-0.5 rounded">vpa</code>.
+                               </div>
+                            </div>
+                            <div className="grid grid-cols-12 gap-4 border-t border-white/5 pt-4">
+                               <div className="col-span-12 sm:col-span-4 font-mono text-[13px] text-white/80">context.message</div>
+                               <div className="col-span-12 sm:col-span-8 text-[13px] text-white/50">
+                                  <span className="text-white/30 text-xs uppercase mr-2">string</span>
+                                  Crucial surrounding context to drastically improve risk detection accuracy.
+                               </div>
+                            </div>
+                            <div className="grid grid-cols-12 gap-4 border-t border-white/5 pt-4">
+                               <div className="col-span-12 sm:col-span-4 font-mono text-[13px] text-white/80">context.message_timestamp</div>
+                               <div className="col-span-12 sm:col-span-8 text-[13px] text-white/50">
+                                  <span className="text-white/30 text-xs uppercase mr-2">string</span>
+                                  ISO 8601 timestamp of the communication.
+                               </div>
+                            </div>
+                         </div>
                       </div>
                    </div>
-                   
-                   <div>
-                      <h3 className="text-sm font-semibold mb-3">Response Payload</h3>
-                      <div className="rounded-xl border border-white/10 bg-[#15161A] p-4 font-mono text-[13px] overflow-x-auto">
-<pre className="text-blue-400">{`{
-  "risk_score": 86,
-  "risk_band": "HIGH",
-  "action": "WARN",
-  "evidence": [
-    "No matching incoming credit found",
-    "First payment to recipient",
-    "Payment closely followed message",
-    "Amount matches requested amount"
-  ]
-}`}</pre>
+
+                   {/* Right Column: Code Snippets */}
+                   <div className="xl:col-span-5 space-y-6">
+                      <div className="rounded-xl border border-white/10 bg-[#101114] overflow-hidden shadow-xl">
+                         <div className="flex items-center px-4 py-2 border-b border-white/5 bg-white/[0.02]">
+                            <span className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">Example Request</span>
+                         </div>
+                         <div className="p-4 font-mono text-[12px] leading-relaxed overflow-x-auto text-white/80">
+<pre>
+<span className="text-blue-300">curl</span> -X POST https://api.pausepay.io/v1/risk/evaluate \{"\n"}
+  -H <span className="text-emerald-300">"Authorization: Bearer pp_test_8A2..."</span> \{"\n"}
+  -H <span className="text-emerald-300">"Content-Type: application/json"</span> \{"\n"}
+  -d <span className="text-orange-300">'{'{'}</span>{"\n"}
+  <span className="text-blue-300">"amount"</span>: <span className="text-purple-400">5000</span>,{"\n"}
+  <span className="text-blue-300">"currency"</span>: <span className="text-emerald-300">"INR"</span>,{"\n"}
+  <span className="text-blue-300">"payee"</span>: {'{'}{"\n"}
+    <span className="text-blue-300">"name"</span>: <span className="text-emerald-300">"Rahul Sharma"</span>,{"\n"}
+    <span className="text-blue-300">"vpa"</span>: <span className="text-emerald-300">"rahul@upi"</span>{"\n"}
+  {'}'},{"\n"}
+  <span className="text-blue-300">"context"</span>: {'{'}{"\n"}
+    <span className="text-blue-300">"message"</span>: <span className="text-emerald-300">"I accidentally sent ₹5000. Please send it back."</span>,{"\n"}
+    <span className="text-blue-300">"message_timestamp"</span>: <span className="text-emerald-300">"2026-09-19T09:40:12Z"</span>{"\n"}
+  {'}'}{"\n"}
+<span className="text-orange-300">{'}'}'</span>{"\n"}
+</pre>
+                         </div>
                       </div>
-                      <div className="mt-3 text-xs text-white/50 flex items-start gap-2 bg-orange-500/10 border border-orange-500/20 p-3 rounded-lg text-orange-200/90">
-                         <ShieldAlert size={16} className="text-orange-400 shrink-0 mt-0.5" />
-                         <span><strong className="text-orange-400 font-medium">Risk assessment, not a fraud verdict.</strong><br/>You decide how to act on the evidence.</span>
+
+                      <div className="rounded-xl border border-white/10 bg-[#101114] overflow-hidden shadow-xl">
+                         <div className="flex items-center px-4 py-2 border-b border-white/5 bg-white/[0.02]">
+                            <span className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">Example Response</span>
+                         </div>
+                         <div className="p-4 font-mono text-[12px] leading-relaxed overflow-x-auto text-white/80">
+<pre>
+{'{'}{"\n"}
+  <span className="text-blue-300">"risk_score"</span>: <span className="text-purple-400">86</span>,{"\n"}
+  <span className="text-blue-300">"risk_band"</span>: <span className="text-emerald-300">"HIGH"</span>,{"\n"}
+  <span className="text-blue-300">"action"</span>: <span className="text-emerald-300">"WARN"</span>,{"\n"}
+  <span className="text-blue-300">"evidence"</span>: [{"\n"}
+    <span className="text-emerald-300">"No matching incoming credit found"</span>,{"\n"}
+    <span className="text-emerald-300">"First payment to recipient"</span>,{"\n"}
+    <span className="text-emerald-300">"Payment closely followed message"</span>,{"\n"}
+    <span className="text-emerald-300">"Amount matches requested amount"</span>{"\n"}
+  ]{"\n"}
+{'}'}{"\n"}
+</pre>
+                         </div>
                       </div>
                    </div>
                 </div>
                 
-                <div className="pt-4 border-t border-white/10">
+                {/*<div className="pt-4 border-t border-white/10">
                    <a href="/docs" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 font-medium">
                       View full API documentation <ChevronRight size={16} />
                    </a>
-                </div>
+                </div>*/}
               </div>
             )}
           </div>

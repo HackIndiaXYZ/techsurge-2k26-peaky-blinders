@@ -232,22 +232,47 @@ function PayFlow() {
     );
   }
 
-  if (step === "paid" || step === "continued" || step === "cancelled") {
-    const cancelled = step === "cancelled";
-    const continued = step === "continued";
+  if (step === "continued") {
     return (
-      <main className="flex flex-col h-full bg-[#f8f9fa] text-zinc-900 p-6 pt-12 items-center text-center">
-        <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-6 shadow-sm border ${cancelled ? "bg-red-50 text-red-600 border-red-100" : continued ? "bg-white text-zinc-900 border-zinc-200" : "bg-emerald-50 text-emerald-600 border-emerald-100"}`}>
-          {cancelled ? <X size={32} /> : continued ? <TriangleAlert size={28} /> : <Check size={32} strokeWidth={3} />}
+      <main className="flex flex-col h-full bg-[#f8f9fa] text-zinc-900 p-6 pt-12 items-center text-center overflow-y-auto">
+        <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-sm border bg-amber-50 text-amber-500 border-amber-200/50">
+           <TriangleAlert size={32} />
         </div>
-        <h2 className="text-2xl font-bold mb-3">{cancelled ? "Payment cancelled" : continued ? "You chose to continue" : "Payment successful"}</h2>
+        <h2 className="text-[22px] font-bold mb-8">You chose to continue</h2>
+        
+        <div className="flex flex-col items-center mb-10">
+          <div className="text-3xl font-light tracking-tight mb-2">{formatInr(amountNumber)}</div>
+          <div className="text-[15px] font-medium text-zinc-600">sent to {name || "Payee"}</div>
+          <div className="text-[13px] text-zinc-400">in this demo</div>
+        </div>
+
+        <div className="w-full h-px bg-zinc-200/60 mb-8" />
+
+        <div className="text-[15px] font-medium text-zinc-800 mb-1">PausePay warned you before<br/>you continued.</div>
+        <div className="text-[14px] text-zinc-500 mb-10">Your decision has been recorded.</div>
+        
+        <div className="mt-auto w-full space-y-3 pt-6">
+          <button type="button" className="w-full bg-white border border-zinc-200 text-zinc-900 font-bold py-4 rounded-xl shadow-sm active:bg-zinc-50 transition-all" onClick={() => router.push("/app/inbox")}>
+            Done
+          </button>
+        </div>
+      </main>
+    );
+  }
+
+  if (step === "paid" || step === "cancelled") {
+    const cancelled = step === "cancelled";
+    return (
+      <main className="flex flex-col h-full bg-[#f8f9fa] text-zinc-900 p-6 pt-12 items-center text-center overflow-y-auto">
+        <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-6 shadow-sm border ${cancelled ? "bg-red-50 text-red-600 border-red-100" : "bg-emerald-50 text-emerald-600 border-emerald-100"}`}>
+          {cancelled ? <X size={32} /> : <Check size={32} strokeWidth={3} />}
+        </div>
+        <h2 className="text-2xl font-bold mb-3">{cancelled ? "Payment cancelled" : "Payment successful"}</h2>
         <p className="text-sm text-zinc-500 mb-10 leading-relaxed max-w-[280px]">
-          {cancelled ? "No money was sent. This identifier has been reported." : 
-           continued ? "PausePay's warning was recorded. The simulated payment proceeded." : 
-           "The synthetic payment was sent securely."}
+          {cancelled ? "No money was sent. This identifier has been reported." : "The synthetic payment was sent securely."}
         </p>
         
-        <div className="mt-auto w-full space-y-3">
+        <div className="mt-auto w-full space-y-3 pt-6">
           <button type="button" className="w-full bg-white text-zinc-900 font-bold py-3.5 rounded-xl border border-zinc-200 shadow-sm active:bg-zinc-50 transition-colors" onClick={() => router.push("/app/inbox")}>
             Start over
           </button>
