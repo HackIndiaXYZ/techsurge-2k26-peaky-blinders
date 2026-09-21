@@ -1,4 +1,4 @@
-import { ArrowDownRight, ArrowRight, Building2, Eye, LockKeyhole, ScanSearch, ShieldCheck, Smartphone } from "lucide-react";
+import { ArrowDownRight, ArrowRight, Building2, Eye, LockKeyhole, ScanSearch, ShieldCheck, Smartphone, FileText } from "lucide-react";
 import Image from "next/image";
 import { UPINetwork } from "@/components/landing/UPINetwork";
 import { ScenarioLab } from "@/components/landing/ScenarioLab";
@@ -28,6 +28,10 @@ export default function HomePage() {
             <Building2 size={15} />
             <span>Services for Companies</span>
             <span className="badge-enterprise">API</span>
+          </a>
+          <a className="nav-item-companies hidden sm:flex" href="/docs" aria-label="Documentation">
+            <FileText size={15} />
+            <span>Documentation</span>
           </a>
           <ThemeToggle />
           <a className="button button--compact" href="#demo">Try a scenario <ArrowRight size={16} /></a>
@@ -118,6 +122,11 @@ export default function HomePage() {
           </div>
         </div>
         <div className="site-footer__bottom">
+          <div className="flex items-center gap-4 text-xs font-semibold">
+            <a href="/docs" className="hover:underline" style={{ color: "var(--color-accent)" }}>Documentation</a>
+            <span>&middot;</span>
+            <a href="/companies" className="hover:underline" style={{ color: "var(--color-accent)" }}>Services for Companies</a>
+          </div>
           <span className="brand__name">PausePay</span>
           <p>Contextual payment safety for UPI.</p>
           <span>Synthetic prototype · 2026</span>

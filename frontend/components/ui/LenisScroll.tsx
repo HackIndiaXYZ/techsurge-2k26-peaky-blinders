@@ -9,7 +9,7 @@ export function LenisScroll({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    if (pathname && pathname.startsWith("/app")) return;
+    if (pathname && (pathname.startsWith("/app") || pathname.startsWith("/companies"))) return;
 
     const lenis = new Lenis({
       duration: 1.05,

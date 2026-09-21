@@ -2,48 +2,96 @@
 
 ### A pause-before-payment verification layer for UPI-style payments
 
-> **A message asked you to pay. PausePay remembers it when you actually try to.**
+> **PausePay is a contextual payment safety layer that gives users a second opinion before they complete a payment.**
+> 
+> Instead of evaluating a payment in isolation, PausePay combines payment information with surrounding context—such as messages, recipient history, timing, amount patterns, and available ledger information—to identify potentially risky situations and explain why.
 
 PausePay is a working fraud-prevention prototype that sits between suspicious payment requests (messages) and the user's final UPI payment decision. It analyses payment-related messages, remembers the UPI IDs and phone numbers behind risky ones, and checks that memory again the moment the user tries to pay. If the payee matches a suspicious message, a fraud report or the seeded confirmed-fraud list, the payment is **paused** — not blocked — with a short, evidence-based explanation.
 
 The user keeps two choices: **Cancel payment & report** or **Continue payment**.
 
-> Risk ≠ fraud verdict. PausePay shows evidence and uncertainty; it never decides for the user.
-
 ---
 
-## Table of contents
-
-- [Problem](#problem)
-- [What works today](#what-works-today)
-- [Architecture](#architecture)
-- [How detection works](#how-detection-works)
-  - [Synthetic dataset](#synthetic-dataset)
-  - [ML intent classifier](#ml-intent-classifier)
-  - [Entity extraction](#entity-extraction)
-  - [Risk engine](#risk-engine)
-  - [Risk store](#risk-store)
-  - [Message → payment correlation](#message--payment-correlation)
-  - [Explanation engine](#explanation-engine)
-- [Frontend](#frontend)
-- [Backend](#backend)
-- [API](#api)
-- [Database](#database)
-- [Running it](#running-it)
-- [Training the model](#training-the-model)
-- [Tests](#tests)
-- [Demo scenarios](#demo-scenarios)
-- [Limitations](#limitations)
-- [Future real-world integration](#future-real-world-integration)
-- [Privacy](#privacy)
-
----
-
-## Problem
+## The Problem
 
 Authorised push-payment scams are hard to stop because the payment itself is valid: the victim enters the payee, the amount, and their PIN. The fraud lives in the **message that convinced them** — the fake KYC deadline, the prize that needs a "processing fee", the refund that was "sent by mistake".
 
 Payment apps see the payment. Messaging apps see the message. Nobody connects the two at the moment it matters.
+
+### Traditional transaction screening
+```text
+Payment  →  Transaction signals  →  Risk score
+```
+
+### PausePay
+```text
+Message + Payment + Recipient + Ledger + Timing + Behavior
+       ↓
+  Contextual assessment
+       ↓
+ Risk + explanation
+```
+
+> **A payment may look ordinary by itself while the surrounding context makes it suspicious.**
+
+---
+
+## Core Demo
+
+We demonstrate this through a simulated three-app model:
+
+```text
+┌────────────┐
+│   Inbox    │
+│ Messages   │
+└─────┬──────┘
+      │ Context
+      ▼
+┌────────────┐
+│    FLOW    │
+│  Payment   │
+└─────┬──────┘
+      │ Payment + Context
+      ▼
+┌────────────┐
+│ PausePay   │
+│ Risk Check │
+└─────┬──────┘
+      ▼
+ Risk + Evidence
+      │
+      ▼
+User Decision
+```
+
+### The Three Apps:
+- **Inbox**: Provides communication context (message text, requested amount, identifier, timestamp, detected intent).
+- **FLOW**: Represents the payment provider (recipient, amount, review, outcome).
+- **PausePay**: Provides contextual aggregation, risk assessment, evidence, explanation, intervention, and an audit trail.
+
+*(Note: Inbox and FLOW are simulated apps in the prototype; PausePay's partner integration is demonstrated through the API model.)*
+
+---
+
+## Risk ≠ Fraud Verdict
+
+```text
+                    PAUSEPAY
+                       │
+                Risk assessment
+                       │
+             ┌─────────┴─────────┐
+             ▼                   ▼
+          Evidence            Score
+             │                   │
+             └─────────┬─────────┘
+                       ▼
+                  USER DECIDES
+```
+
+**PausePay does not claim that a payment is fraudulent. It identifies contextual risk and shows evidence and uncertainty; it never decides for the user.**
+
+---
 
 ## What works today
 
@@ -64,6 +112,18 @@ Everything in the core pipeline is real code you can read, run and test:
 | Backend tests incl. the critical end-to-end flow | ✅ 39 tests |
 
 What is **simulated**: the messenger threads and the UPI app UI. No real chat app is read and no real money moves. A real integration would call the same `POST /api/analyze-message` and `POST /api/verify-payee` endpoints.
+
+---
+
+## Technical Stack
+
+- **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS
+- **Backend**: Python, FastAPI, SQLAlchemy, SQLite
+- **ML / NLP**: TF-IDF, scikit-learn (Logistic Regression), Entity extraction, Deterministic risk engine
+- **Integration**: REST API, API keys, JSON
+- **Testing**: pytest (39 backend tests)
+
+---
 
 ## Architecture
 
@@ -111,6 +171,8 @@ USER → UPI simulator → POST /api/verify-payee
                                   │
                           POST /api/report-fraud
 ```
+
+---
 
 ## How detection works
 
@@ -192,9 +254,11 @@ Simulated messenger messages carry a `source_ref`; the backend de-duplicates on 
 - "This number has 2 fraud report(s) and appeared in 1 suspicious message(s)."
 - "No suspicious messages or reports are linked to this UPI ID. PausePay has no evidence against it — this is not a guarantee it is safe."
 
+---
+
 ## Frontend
 
-Next.js 15 (App Router) · React 19 · TypeScript · the project's existing token system (`frontend/tokens.css`, `styles/globals.css`) extended with `styles/app.css`. The landing page (`/`) keeps its editorial design; the product lives under `/app` as a phone-width, mobile-first shell shown inside a device frame on desktop.
+The project's existing token system (`frontend/tokens.css`, `styles/globals.css`) extended with `styles/app.css`. The landing page (`/`) keeps its editorial design; the product lives under `/app` as a phone-width, mobile-first shell shown inside a device frame on desktop.
 
 | Route | Purpose |
 |---|---|
@@ -206,37 +270,11 @@ Next.js 15 (App Router) · React 19 · TypeScript · the project's existing toke
 
 `frontend/lib/api.ts` is the only place that talks to the backend: typed functions, 8 s timeout, `ApiUnavailableError` on network/5xx. There is **no fake fallback** — if the backend is down every screen shows "PausePay verification temporarily unavailable." and the header pill turns red.
 
-## Backend
+---
 
-FastAPI · Pydantic v2 · SQLAlchemy 2 · SQLite · scikit-learn · pandas · joblib.
+## Backend & API
 
-```
-backend/
-  main.py                 app factory, CORS, lifespan (DB init, model load, seed list)
-  config.py               pydantic-settings (PAUSEPAY_* env vars, .env)
-  database.py             engine / session / init_db
-  models/entities.py      MessageAnalysis, IdentifierRisk, FraudReport, PaymentVerification
-  schemas/api.py          request / response contracts
-  routes/                 health, analysis, payments, reports, dashboard, simulator
-  services/
-    intent_detector.py    model bundle loader + prediction
-    text_normaliser.py    shared preprocessing (training + inference)
-    entity_extractor.py   phones / UPI / amounts / URLs / keywords + normalisation
-    risk_engine.py        deterministic scoring for messages and payments
-    fraud_lookup.py       identifier risk store, seeding, evidence accumulation
-    correlation_engine.py message → payment correlation
-    explanation_engine.py human explanations
-    analysis_service.py   orchestration + persistence
-  scripts/
-    generate_dataset.py   synthetic dataset
-    train_model.py        training + evaluation
-    smoke_flow.py         end-to-end run without a server
-  data/                   dataset, holdout, metrics, seed list, demo conversations, SQLite file
-  models_store/           trained model bundle
-  tests/                  pytest suite
-```
-
-## API
+### API Endpoints
 
 | Method | Path | Purpose |
 |---|---|---|
@@ -252,18 +290,7 @@ backend/
 
 Interactive docs: http://127.0.0.1:8000/docs
 
-Example:
-
-```bash
-curl -X POST http://127.0.0.1:8000/api/analyze-message -H "Content-Type: application/json" \
-  -d '{"message":"Your KYC expires today. Pay ₹4,999 immediately to secureverify@upi or your account will be suspended."}'
-
-curl -X POST http://127.0.0.1:8000/api/verify-payee -H "Content-Type: application/json" \
-  -d '{"identifier":"secureverify@upi","amount":4999}'
-# → "decision": "INTERRUPT", "summary": "This UPI ID and the ₹4,999 amount match an earlier suspicious message (kyc / account verification demand)."
-```
-
-## Database
+### Database
 
 SQLite file `backend/data/pausepay.db` (WAL mode), created on first start by `Base.metadata.create_all`. Tables:
 
@@ -273,6 +300,8 @@ SQLite file `backend/data/pausepay.db` (WAL mode), created on first start by `Ba
 - `payment_verifications` — payee, amount, decision, score, band, matched message, signals, reasons, user action + timestamp
 
 Delete the `.db` file to reset the demo; the seed list is re-applied at startup.
+
+---
 
 ## Running it
 
@@ -305,6 +334,8 @@ npm run dev
 
 Open http://localhost:3000 (Next falls back to 3001 if 3000 is busy; the backend accepts any localhost origin). The API base URL defaults to `http://127.0.0.1:8000`; override with `NEXT_PUBLIC_PAUSEPAY_API_URL` in `frontend/.env.local`.
 
+---
+
 ## Training the model
 
 ```bash
@@ -314,6 +345,8 @@ cd backend
 ```
 
 `train_model.py` prints accuracy, macro precision/recall/F1, the 15×15 confusion matrix, the scam-model metrics, holdout results (with every misclassified holdout message) and inference latency, and writes `data/model_metrics.json` + `models_store/intent_model.joblib`. Restart the backend to pick up a new model.
+
+---
 
 ## Tests
 
@@ -334,6 +367,8 @@ cd backend
 
 Frontend: `npm run typecheck` and `npm run build`.
 
+---
+
 ## Demo scenarios
 
 All threads are in `backend/data/demo_conversations.json`; the same payees are one tap away on the Pay screen.
@@ -350,7 +385,26 @@ All threads are in `backend/data/demo_conversations.json`; the same payees are o
 
 See `walkthrough.md` for the judge-facing script.
 
+---
+
 ## Limitations
+
+**CURRENT PROTOTYPE**
+- [x] Simulated messaging environment
+- [x] Simulated payment environment
+- [x] Contextual risk assessment
+- [x] Evidence generation
+- [x] Risk scoring
+- [x] User decision recording
+- [x] Partner API concept
+
+**NOT YET PRODUCTION INTEGRATED**
+- [ ] Real bank SMS ingestion
+- [ ] Real UPI/payment-provider integration
+- [ ] Android notification listener
+- [ ] Production authentication
+- [ ] Production-scale database
+- [ ] Large-scale behavioral baseline
 
 - **Synthetic data.** The classifier is trained on templated messages; 98% on 52 hand-written holdout messages is encouraging, not a real-world claim. Real scam text is more varied, multilingual and adversarial.
 - **Simulated sources.** The messenger and UPI app are simulators inside the web app. PausePay does not read WhatsApp/SMS or intercept any payment app.
@@ -359,7 +413,32 @@ See `walkthrough.md` for the judge-facing script.
 - **Identifier churn.** Scammers rotate UPI IDs; evidence attached to one handle does not transfer to the next.
 - **No ledger/behavioural context yet.** Amount vs. usual spend, payee age, time-of-day and incoming-transfer verification are natural next signals.
 
+---
+
 ## Future real-world integration
+
+**Prototype → controlled integration → production payment-provider deployment**
+
+```text
+                 PAYMENT PROVIDER
+                        │
+                        ▼
+                 PausePay SDK/API
+                        │
+              ┌─────────┴─────────┐
+              ▼                   ▼
+       Payment Context      Communication
+              │                   │
+              └─────────┬─────────┘
+                        ▼
+                Context Engine
+                        ↓
+                Risk Assessment
+                        ↓
+                 Risk + Evidence
+                        ↓
+                Provider / User UI
+```
 
 The backend is already the integration surface. A real deployment would:
 
@@ -368,6 +447,15 @@ The backend is already the integration surface. A real deployment would:
 - replace the seed list with shared reputation data (NPCI / bank fraud-reporting feeds, 1930 helpline data) while keeping the same `IdentifierRisk` shape;
 - move SQLite to Postgres, add auth and per-user isolation, and retrain the classifier on labelled real reports.
 
+---
+
 ## Privacy
 
 PausePay analyses payment-related context to identify suspicious payment requests. In this prototype only the synthetic demo threads and whatever you paste into **Check** are stored, locally, in `backend/data/pausepay.db`. No credentials, PINs or OTPs are ever requested or stored.
+
+---
+
+## Documentation Links
+- [Judge's Quick Guide](docs/JUDGE-GUIDE.md)
+- [Architecture Details](docs/ARCHITECTURE.md)
+- [Partner API](docs/API.md)
